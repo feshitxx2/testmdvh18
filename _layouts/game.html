@@ -386,6 +386,15 @@
         font-size: 14px;
     }
 }
+  .pitu-stars .fa-star.fa-solid,
+.pitu-stars .fa-star:hover,
+.pitu-stars .fa-star:hover ~ .fa-star {
+    color: #ffca08 !important; /* Đổi màu sao thành màu vàng gold */
+}
+/* Cơ chế hover ngược dòng trong CSS */
+.pitu-stars {
+    direction: ltr;
+}
 </style>
 
     <div class="menu-container">
@@ -461,6 +470,23 @@
             <p>{{ page.mota }}</p>
         </div>
     </div>
+  <div class="pitu-rating-container" style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+  <span style="font-weight: bold; display: block; margin-bottom: 8px;">Đánh giá game này:</span>
+  
+  <div class="pitu-stars" style="display: flex; gap: 5px; font-size: 24px; color: #ccc; cursor: pointer;">
+    <i class="fa-star fa-regular" data-star="1"></i>
+    <i class="fa-star fa-regular" data-star="2"></i>
+    <i class="fa-star fa-regular" data-star="3"></i>
+    <i class="fa-star fa-regular" data-star="4"></i>
+    <i class="fa-star fa-regular" data-star="5"></i>
+  </div>
+  
+  <div class="rating-info" style="font-size: 13px; color: #666; margin-top: 5px;">
+    Đang tải đánh giá...
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <div class="game-info">
   <h5 style="margin-top: 0; font-size: 20px;">Thông Tin Game</h5>
   {% if page.infor %}<div><b>Infor:</b> {{ page.infor }}</div>{% endif %}
@@ -697,4 +723,99 @@ window.onscroll = function() {
     <div class="megumin-left">
     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiAWkPOxJVqkc0xIyKBoulfxbN9BXFI1j6jQMc9SnV2HjiESbR7VvDZM6FheAGZ86P57AnIEhX0Wy8HFw0xkd8lGV4svCOHtD9oecMQr22ItBvEVrLcJMixvPtvN31uIZZY-z0clWZD4iPkQ8A7Gpo_JkJkI9tW0dOvw9nmT1Lr1znL3xKJaLbq49s_Yw/s1600/IMG_20220521_032343.png" alt="Megumin Left">
 </div>
+  <script>
+    const SUPABASE_URL = "https://mlyczwkinxdlwxtfbklr.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seWN6d2tpbnhkbHd4dGZia2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NzcwNDgsImV4cCI6MjA5NzI1MzA0OH0.ZCh0WI63y3h3i9gf211dpETU7rZ8wvmoQbuKec3lPwE";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const pituId = "{{ page.pitu_id }}"; // Lấy ID bài viết hiện tại từ front-matter
+const starsContainer = document.querySelector('.pitu-stars');
+const stars = document.querySelectorAll('.pitu-stars .fa-star');
+const ratingInfo = document.querySelector('.rating-info');
+
+let currentTotalStars = 0;
+let currentTotalVotes = 0;
+let hasVoted = localStorage.getItem('voted_' + pituId); // Chống spam vote bằng cách lưu cookie trình duyệt
+
+async function loadRating() {
+    // Lấy dữ liệu từ Supabase về
+    let { data, error } = await supabase.from('game_ratings').select('*').eq('pitu_id', pituId).single();
+    
+    if (data) {
+        currentTotalStars = data.total_stars;
+        currentTotalVotes = data.total_votes;
+        const avg = (currentTotalStars / currentTotalVotes).toFixed(1);
+        ratingInfo.innerText = `${avg} / 5 sao (${currentTotalVotes} lượt đánh giá)`;
+        lightUpStars(Math.round(avg));
+    } else {
+        ratingInfo.innerText = "Chưa có đánh giá nào. Hãy là người đầu tiên!";
+    }
+}
+
+function lightUpStars(num) {
+    stars.forEach((star, idx) => {
+        if (idx < num) {
+            star.classList.remove('fa-regular');
+            star.classList.add('fa-solid');
+        } else {
+            star.classList.remove('fa-solid');
+            star.classList.add('fa-regular');
+        }
+    });
+}
+
+// Xử lý sự kiện di chuột hover và click chọn sao
+stars.forEach(star => {
+    star.addEventListener('mouseover', function() {
+        if (hasVoted) return;
+        const val = parseInt(this.dataset.star);
+        stars.forEach((s, i) => i < val ? s.classList.add('fa-solid') : s.classList.remove('fa-solid'));
+    });
+});
+
+starsContainer.addEventListener('mouseleave', () => {
+    if (hasVoted) return;
+    const avg = currentTotalVotes > 0 ? Math.round(currentTotalStars / currentTotalVotes) : 0;
+    lightUpStars(avg);
+});
+
+stars.forEach(star => {
+    star.addEventListener('click', async function() {
+        if (hasVoted) {
+            alert("Bro đã đánh giá game này rồi!");
+            return;
+        }
+        
+        const score = parseInt(this.dataset.star);
+        ratingInfo.innerText = "Đang gửi đánh giá...";
+
+        // Gửi lệnh RPC tăng biến hoặc kiểm tra xem dòng đó đã tồn tại chưa
+        let { data: existing } = await supabase.from('game_ratings').select('*').eq('pitu_id', pituId).single();
+
+        let result;
+        if (existing) {
+            result = await supabase.from('game_ratings').update({
+                total_stars: existing.total_stars + score,
+                total_votes: existing.total_votes + 1,
+                updated_at: new Date()
+            }).eq('pitu_id', pituId);
+        } else {
+            result = await supabase.from('game_ratings').insert([
+                { pitu_id: pituId, total_stars: score, total_votes: 1 }
+            ]);
+        }
+
+        if (!result.error) {
+            localStorage.setItem('voted_' + pituId, 'true');
+            hasVoted = true;
+            await loadRating();
+            alert("Cảm ơn bro đã vote!");
+        } else {
+            ratingInfo.innerText = "Lỗi hệ thống, không thể vote.";
+        }
+    });
+});
+
+loadRating();
+  </script>
 </html>
