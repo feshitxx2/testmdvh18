@@ -1,7 +1,7 @@
 (function() {
     const CONFIG = {
-        itemsPerPage: 15, // Số lượng game hiển thị trên 1 trang khi chọn filter
-        currentPage: 1    // Trang hiện tại khi chọn filter
+        itemsPerPage: 15, // Hiển thị tối đa 15 game trên một trang khi chọn bộ lọc
+        currentPage: 1    // Mặc định luôn ở trang 1 khi bắt đầu hoặc đổi bộ lọc
     };
 
     let filteredItems = [];
@@ -23,23 +23,14 @@
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
         
-        // Tìm thanh phân trang gốc của Jekyll
-        const jekyllPaginator = document.getElementById('load-more-container') || 
-                                document.querySelector('.pagination') || 
-                                document.getElementById('btn-load-more');
-
-        // Tạo sẵn một vùng chứa mới dành riêng cho các nút phân trang của JavaScript
-        let jsPaginator = document.getElementById('js-paginator-container');
-        if (!jsPaginator && jekyllPaginator) {
-            jsPaginator = document.createElement('div');
-            jsPaginator.id = 'js-paginator-container';
-            jsPaginator.style.cssText = 'text-align: center; margin-top: 20px; display: flex; justify-content: center; gap: 5px; width: 100%;';
-            jekyllPaginator.parentNode.insertBefore(jsPaginator, jekyllPaginator.nextSibling);
-        }
+        // Định vị chính xác hai thanh phân trang từ cấu trúc HTML
+        const jekyllPaginator = document.getElementById('load-more-container');
+        const jsPaginator = document.getElementById('js-paginator-container');
 
         const engines = new Map();
         const genres = new Map();
 
+        // Thu thập dữ liệu từ các thẻ game hiện diện trên màn hình
         items.forEach(item => {
             if(item.dataset.engine) {
                 const raw = item.dataset.engine.trim();
@@ -53,6 +44,7 @@
             }
         });
 
+        // Hàm tạo các nút bấm lọc Engine và Tags bên Sidebar
         function createFilterBtns(mapItems, containerFilter, type) {
             if (!containerFilter) return; 
             containerFilter.innerHTML = ''; 
@@ -88,7 +80,7 @@
         createFilterBtns(engines, engineContainer, 'engine');
         createFilterBtns(genres, genreContainer, 'genres');
 
-        // Hàm tải ảnh từ dữ liệu PITU_DATABASE cho các game hiển thị ở trang hiện tại
+        // Hàm gán ảnh banner thực tế từ file PITU_DATABASE cho các thẻ game được hiển thị
         function loadVisibleImages() {
             const start = (CONFIG.currentPage - 1) * CONFIG.itemsPerPage;
             const end = start + CONFIG.itemsPerPage;
@@ -108,22 +100,24 @@
             });
         }
 
-        // Hàm vẽ các nút số Trang (1, 2, 3...) động bằng JS dựa trên kết quả filter
+        // Hàm tự động vẽ các nút số Trang (1, 2, 3...) khi kết quả lọc vượt quá giới hạn hiển thị
         function renderJSPaginator() {
             if (!jsPaginator) return;
             jsPaginator.innerHTML = '';
 
             const totalPages = Math.ceil(filteredItems.length / CONFIG.itemsPerPage);
-            if (totalPages <= 1) return; // Nếu chỉ có 1 trang thì không cần vẽ nút làm gì
+            if (totalPages <= 1) return; // Nếu tổng số game sau lọc nhỏ hơn hoặc bằng 15 thì không cần hiện nút
 
             for (let i = 1; i <= totalPages; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.innerText = i;
                 pageBtn.className = 'js-page-btn';
-                pageBtn.style.cssText = 'padding: 8px 12px; border: 1px solid #ccc; background: #fff; cursor: pointer; font-weight: bold; border-radius: 4px;';
+                
+                // Style cơ bản cho nút chuyển trang (bạn có thể chỉnh sửa lại trong file CSS của mình)
+                pageBtn.style.cssText = 'padding: 8px 14px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; border-radius: 4px; color: #333; transition: all 0.2s;';
                 
                 if (i === CONFIG.currentPage) {
-                    pageBtn.style.background = '#007bff'; // Màu nút trang hiện tại (Có thể đổi theo CSS của bạn)
+                    pageBtn.style.background = '#007bff'; 
                     pageBtn.style.color = '#fff';
                     pageBtn.style.borderColor = '#007bff';
                 }
@@ -131,43 +125,43 @@
                 pageBtn.onclick = function() {
                     CONFIG.currentPage = i;
                     updateDisplay();
-                    window.scrollTo({ top: grid.offsetTop - 20, behavior: 'smooth' }); // Cuộn nhẹ lên đầu lưới game
+                    if (grid) {
+                        window.scrollTo({ top: grid.offsetTop - 20, behavior: 'smooth' }); // Cuộn mượt lên đầu danh sách game
+                    }
                 };
                 jsPaginator.appendChild(pageBtn);
             }
         }
 
-        // Hàm cập nhật trạng thái hiển thị logic chia trang
+        // Hàm điều khiển ẩn/hiện và phân chia giao diện
         function updateDisplay() {
-            // Ẩn toàn bộ danh sách gốc
+            // Ẩn toàn bộ danh sách card gốc để xử lý
             items.forEach(item => {
                 item.style.display = 'none';
                 item.classList.remove('is-visible');
             });
 
-            // Kiểm tra xem người dùng có đang dùng bộ lọc nào không
+            // Kiểm tra xem người dùng có đang kích hoạt nút lọc nào không
             const hasActiveFilter = document.querySelectorAll('.filter-btn.active').length > 0;
 
             if (!hasActiveFilter) {
-                // TRẠNG THÁI MẶC ĐỊNH: Hiện lại paginator của Jekyll, ẩn paginator của JS
+                // TRẠNG THÁI MẶC ĐỊNH: Hiện phân trang Jekyll, Ẩn phân trang JS số
                 if (jekyllPaginator) jekyllPaginator.style.display = 'block';
                 if (jsPaginator) jsPaginator.style.display = 'none';
 
-                // Trang chủ hiện bao nhiêu bài của Jekyll thì trả lại nguyên vẹn bấy nhiêu
                 items.forEach(item => {
                     item.style.display = 'block';
                     item.classList.add('is-visible');
                 });
                 
-                // Kích hoạt tải ảnh cho toàn bộ bài đang có ở trang này
                 filteredItems = Array.from(items);
                 loadVisibleImages();
             } else {
-                // TRẠNG THÁI ĐANG BẤM FILTER: Ẩn paginator Jekyll, Hiện paginator của JS
+                // TRẠNG THÁI ĐANG BẤM FILTER: Ẩn phân trang Jekyll, Hiện phân trang JS số
                 if (jekyllPaginator) jekyllPaginator.style.display = 'none';
                 if (jsPaginator) jsPaginator.style.display = 'flex';
 
-                // Tính toán vị trí cắt mảng dữ liệu để phân trang bằng số
+                // Cắt mảng dữ liệu để phân chia trang chính xác theo CONFIG
                 const start = (CONFIG.currentPage - 1) * CONFIG.itemsPerPage;
                 const end = start + CONFIG.itemsPerPage;
                 
@@ -182,6 +176,7 @@
             }
         }
 
+        // Logic xử lý so khớp bộ lọc dữ liệu chính
         function filter() {
             if (jekyllPaginator) jekyllPaginator.style.display = 'none';
             if (jsPaginator) jsPaginator.style.display = 'none';
@@ -192,7 +187,6 @@
                 const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
                 const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
                 
-                // Thực hiện lọc trên danh sách game hiện có tại trang này
                 filteredItems = Array.from(items).filter(item => {
                     const cardEngine = item.dataset.engine ? item.dataset.engine.toLowerCase() : '';
                     const cardGenres = item.dataset.genres ? item.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
@@ -209,7 +203,7 @@
             }, 200);
         }
 
-        // Chạy khởi tạo thiết lập ban đầu
+        // Chạy khởi tạo kiểm tra dữ liệu lần đầu tiên khi trang load xong
         filter();
     }
 
