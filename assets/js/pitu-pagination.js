@@ -146,19 +146,40 @@
             const gameUrl = gUrl.startsWith('http') ? gUrl : baseUrl + gUrl;
 
             return `
-                <div class="game-card" data-engine="${game.engine || game.Engine || ''}" data-genres="${game.genre || game.Genre || ''}" style="display: block;">
-                    <a href="${gameUrl}">
-                        <div class="card-thumb">
-                            <img src="${gBanner}" class="grid-pitu-img" data-pitu="${gId}" alt="${game.title || ''}">
-                            <div class="card-type-tags">${typeTagsHTML}</div>
-                            <i class="fa-solid fa-angles-down download-icon-fa"></i> 
-                            ${badgeHTML}
-                        </div>
-                        <div class="card-info">
-                            <h3>${gTitle}</h3>
-                        </div>
-                    </a>
-                </div>
+                <div class="main-content-wrapper" style="display: flex; gap: 5px; align-items: flex-start; width: 100%;">
+  
+  <div class="game-grid">
+    {% assign sorted_posts = paginator.posts | sort: 'date' | reverse %}
+    {% for post in sorted_posts %}
+      {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
+      
+      <div class="game-card" data-engine="{{ post.engine }}" data-genres="{{ post.genre }}">
+        <a href="{{ post.url | relative_url }}">
+          <div class="card-thumb">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
+                 class="grid-pitu-img" 
+                 data-pitu="{{ game_id }}" 
+                 alt="{{ post.title }}">
+
+            <div class="card-type-tags">
+              {% for type in post.typegame %}
+                <span class="tag-item tag-{{ type | downcase | slugify }}">{{ type }}</span>
+              {% endfor %}
+            </div>
+            <i class="fa-solid fa-angles-down download-icon-fa"></i> 
+
+            {% if post.categories.size > 0 %}
+              <div class="card-badge">{{ post.categories | first | replace: "-", " " }}</div>
+            {% endif %}
+          </div>
+
+          <div class="card-info">
+            <h3>{{ post.namebanner }}</h3>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
             `;
         }
 
