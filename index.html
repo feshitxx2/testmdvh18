@@ -416,77 +416,113 @@ const backToTopBtn = document.getElementById('back-to-top');
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const allCards = Array.from(document.querySelectorAll('.game-card'));
-    const loadMoreBtn = document.getElementById('load-more-btn'); // Nút này bạn thêm vào HTML nhé
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const engineContainer = document.getElementById('engine-filters');
+    const genreContainer = document.getElementById('genre-filters');
     const grid = document.querySelector('.game-grid');
-    
-    let visibleCount = 15;
-    let filteredCards = allCards; // Ban đầu hiện tất cả
 
-    // Hàm load ảnh cho 1 danh sách card cụ thể
-    function loadImages(cards) {
-        cards.forEach(card => {
-            const img = card.querySelector('.grid-pitu-img');
-            // Nếu ảnh chưa được load (src vẫn là placeholder) thì mới load
-            if (img && img.dataset.src && img.src !== img.dataset.src) {
-                img.src = img.dataset.src; 
-            }
+    let visibleCount = 15;
+    let filteredCards = allCards; // Mặc định hiển thị tất cả
+
+    // --- 1. Tạo nút Filter ---
+    const engines = new Map();
+    const genres = new Map();
+
+    allCards.forEach(card => {
+        if(card.dataset.engine) engines.set(card.dataset.engine.trim().toLowerCase(), card.dataset.engine.trim());
+        if(card.dataset.genres) {
+            card.dataset.genres.split(',').forEach(g => {
+                if(g.trim()) genres.set(g.trim().toLowerCase(), g.trim());
+            });
+        }
+    });
+
+    function createBtns(mapItems, container, type) {
+        const sortedItems = Array.from(mapItems.values()).sort();
+        sortedItems.forEach((displayVal, index) => {
+            const btn = document.createElement('button');
+            btn.innerText = displayVal;
+            btn.className = 'filter-btn';
+            if (index >= 15) btn.style.display = 'none'; 
+            btn.onclick = function() {
+                this.classList.toggle('active');
+                filter();
+            };
+            btn.dataset.val = displayVal.toLowerCase();
+            btn.dataset.type = type;
+            container.appendChild(btn);
         });
+
+        if (sortedItems.length > 15) {
+            const more = document.createElement('button');
+            more.innerText = "...";
+            more.className = 'show-more-btn';
+            more.onclick = function() { 
+                container.querySelectorAll('.filter-btn').forEach(b => b.style.display = 'inline-block'); 
+                this.style.display = 'none'; 
+            };
+            container.appendChild(more);
+        }
     }
 
-    // Hàm cập nhật hiển thị
+    createBtns(engines, engineContainer, 'engine');
+    createBtns(genres, genreContainer, 'genres');
+
+    // --- 2. Hàm hiển thị & Lazy Load ảnh ---
     function updateDisplay() {
-        // Ẩn tất cả
+        // Ẩn tất cả trước
         allCards.forEach(c => c.style.display = 'none');
 
-        // Lấy danh sách cần hiện
+        // Chỉ hiện số lượng đang được phép hiển thị
         const toShow = filteredCards.slice(0, visibleCount);
         
-        // Hiện và load ảnh cho danh sách này
-        toShow.forEach(c => {
-            c.style.display = 'block';
+        toShow.forEach(card => {
+            card.style.display = 'block';
+            
+            // Lazy load ảnh
+            const img = card.querySelector('.grid-pitu-img');
+            if (img && img.dataset.src && !img.src.includes(img.dataset.src)) {
+                img.src = img.dataset.src;
+            }
         });
-        loadImages(toShow); // Chỉ load ảnh cho những cái hiện ra
 
-        // Nút xem thêm
+        // Quản lý nút Load More
         if (loadMoreBtn) {
             loadMoreBtn.style.display = (filteredCards.length > visibleCount) ? 'block' : 'none';
         }
     }
 
-    // Hàm Filter
+    // --- 3. Hàm Filter ---
     function filter() {
-        const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
-        const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
+        grid.classList.add('loading-grid');
 
-        filteredCards = allCards.filter(card => {
-            const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
-            const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
-            
-            const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
-            const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
-            
-            return eMatch && gMatch;
-        });
+        setTimeout(() => {
+            const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
+            const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
 
-        visibleCount = 15; // Reset về 15 sau khi lọc
-        updateDisplay();
+            filteredCards = allCards.filter(card => {
+                const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
+                const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
+                
+                const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
+                const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
+                
+                return eMatch && gMatch;
+            });
+
+            visibleCount = 15; // Reset về 15 mỗi khi lọc
+            updateDisplay();
+            grid.classList.remove('loading-grid');
+        }, 200);
     }
 
-    // Sự kiện nút Load More
+    // --- 4. Sự kiện Load More ---
     if (loadMoreBtn) {
         loadMoreBtn.onclick = function() {
             visibleCount += 15;
             updateDisplay();
         };
     }
-
-    // Gán sự kiện filter (như cũ)
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.onclick = function() {
-            this.classList.toggle('active');
-            filter();
-        };
-    });
 
     // Chạy lần đầu
     updateDisplay();
