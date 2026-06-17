@@ -417,9 +417,22 @@ document.addEventListener("DOMContentLoaded", function() {
     const cards = document.querySelectorAll('.game-card');
     const engineContainer = document.getElementById('engine-filters');
     const genreContainer = document.getElementById('genre-filters');
-    const grid = document.querySelector('.game-grid'); // Để áp dụng hiệu ứng loading
+    const grid = document.querySelector('.game-grid'); 
     const engines = new Map();
     const genres = new Map();
+
+    // Khởi tạo cấu hình phân trang cho Game
+    const GAMES_PER_PAGE = 15;
+    let visibleGamesCount = GAMES_PER_PAGE;
+    let filteredCards = []; // Lưu trữ danh sách game thỏa mãn điều kiện filter
+
+    // Tạo nút "Xem thêm game" và gắn vào sau grid
+    const loadMoreGamesBtn = document.createElement('button');
+    loadMoreGamesBtn.innerText = "Xem thêm game";
+    loadMoreGamesBtn.className = 'load-more-games-btn';
+    loadMoreGamesBtn.style.display = 'none';
+    grid.parentNode.insertBefore(loadMoreGamesBtn, grid.nextSibling);
+
     cards.forEach(card => {
         if(card.dataset.engine) {
             const raw = card.dataset.engine.trim();
@@ -432,6 +445,7 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         }
     });
+
     function createBtns(mapItems, container, type) {
         const sortedItems = Array.from(mapItems.values()).sort();
         sortedItems.forEach((displayVal, index) => {
@@ -441,12 +455,15 @@ document.addEventListener("DOMContentLoaded", function() {
             if (index >= 15) btn.style.display = 'none'; 
             btn.onclick = function() {
                 this.classList.toggle('active');
+                // Mỗi lần đổi filter thì reset lại số lượng game hiển thị về mặc định
+                visibleGamesCount = GAMES_PER_PAGE;
                 filter();
             };
             btn.dataset.val = displayVal.toLowerCase();
             btn.dataset.type = type;
             container.appendChild(btn);
         });
+
         if (sortedItems.length > 15) {
             const more = document.createElement('button');
             more.innerText = "...";
@@ -458,22 +475,58 @@ document.addEventListener("DOMContentLoaded", function() {
             container.appendChild(more);
         }
     }
+
     createBtns(engines, engineContainer, 'engine');
     createBtns(genres, genreContainer, 'genres');
+
+    // Hàm cập nhật hiển thị game dựa trên số lượng được phép xem
+    function renderGames() {
+        // Ẩn toàn bộ game trước
+        cards.forEach(card => card.style.display = 'none');
+
+        // Chỉ hiển thị các game thỏa mãn filter theo số lượng giới hạn
+        const gamesToShow = filteredCards.slice(0, visibleGamesCount);
+        gamesToShow.forEach(card => card.style.display = 'block');
+
+        // Nếu số game thỏa mãn nhiều hơn số lượng đang hiển thị thì hiện nút "Xem thêm"
+        if (filteredCards.length > visibleGamesCount) {
+            loadMoreGamesBtn.style.display = 'block';
+        } else {
+            loadMoreGamesBtn.style.display = 'none';
+        }
+    }
+
+    // Xử lý sự kiện khi bấm nút "Xem thêm game"
+    loadMoreGamesBtn.onclick = function() {
+        visibleGamesCount += GAMES_PER_PAGE;
+        renderGames();
+    };
+
     function filter() {
         grid.classList.add('loading-grid');
         setTimeout(() => {
             const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
             const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
-            cards.forEach(card => {
+            
+            // Bước 1: Lọc ra toàn bộ game hợp lệ với điều kiện filter và lưu vào mảng
+            filteredCards = Array.from(cards).filter(card => {
                 const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
                 const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
+                
                 const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
-                const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g))      
-                card.style.display = (eMatch && gMatch) ? 'block' : 'none';
+                const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
+                
+                return eMatch && gMatch;
             });
+
+            // Bước 2: Hiển thị game theo phân trang
+            renderGames();
+
             grid.classList.remove('loading-grid');
         }, 200);
     }
+
+    // Chạy filter lần đầu để áp dụng phân trang ngay khi tải trang
+    filter();
 });
 </script>
