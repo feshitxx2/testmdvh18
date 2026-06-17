@@ -171,7 +171,7 @@ layout: default
           </div>
 
           <div class="card-info">
-            <h3>{{ post.namebanner }}</h3>
+            <h3>{% if post.namebanner %}{{ post.namebanner }}{% else %}{{ post.title }}{% endif %}</h3>
           </div>
         </a>
       </div>
@@ -200,60 +200,59 @@ layout: default
 </div>
 
 <div id="pitu-pagination-wrapper" style="width: 100%; text-align: center; margin-top: 30px; clear: both;">
-  <div id="load-more-container" style="text-align: center; margin: 40px 0; width: 100%; clear: both;">
-    </div>
-</div>
-{% if paginator.total_pages > 1 %}
-<div class="pagination">
-  
-  {% assign current = paginator.page %}
-  {% assign total = paginator.total_pages %}
-  
-  {% comment %} Thiết lập giới hạn: Trang 1 hiện 10, trang khác hiện 5 {% endcomment %}
-  {% if current == 1 %}
-    {% assign limit = 10 %}
-  {% else %}
-    {% assign limit = 5 %}
-  {% endif %}
+  <div id="load-more-container" style="text-align: center; margin: 40px 0; width: 100%; clear: both; display: none;">
+    <button type="button" id="btn-load-more" class="load-more-btn" style="padding: 10px 30px; font-weight: bold; cursor: pointer;">Xem thêm</button>
+  </div>
 
-  {% if current > 1 %}
-    <a href="{{ '/' | relative_url }}">Đầu</a>
-  {% endif %}
-
-  {% comment %} Logic tính toán khoảng hiển thị {% endcomment %}
-  {% assign offset = limit | divided_by: 2 %}
-  {% assign start = current | minus: offset %}
-  {% assign end = current | plus: offset %}
-
-  {% comment %} Cân bằng lại nếu sát đầu hoặc sát cuối {% endcomment %}
-  {% if start < 1 %}
-    {% assign start = 1 %}
-    {% assign end = limit %}
-  {% endif %}
-
-  {% if end > total %}
-    {% assign end = total %}
-    {% assign start = total | minus: limit | plus: 1 %}
-  {% endif %}
-  
-  {% if start < 1 %}{% assign start = 1 %}{% endif %}
-
-  {% for page in (start..end) %}
-    {% if page == current %}
-      <span class="current-page">{{ page }}</span>
-    {% elsif page == 1 %}
-      <a href="{{ '/' | relative_url }}">1</a>
+  {% if paginator.total_pages > 1 %}
+  <div class="pagination">
+    
+    {% assign current = paginator.page %}
+    {% assign total = paginator.total_pages %}
+    
+    {% if current == 1 %}
+      {% assign limit = 10 %}
     {% else %}
-      <a href="{{ site.paginate_path | relative_url | replace: ':num', page }}">{{ page }}</a>
+      {% assign limit = 5 %}
     {% endif %}
-  {% endfor %}
 
-  {% if current < total %}
-    <a href="{{ site.paginate_path | relative_url | replace: ':num', total }}">Cuối</a>
+    {% if current > 1 %}
+      <a href="{{ '/' | relative_url }}">Đầu</a>
+    {% endif %}
+
+    {% assign offset = limit | divided_by: 2 %}
+    {% assign start = current | minus: offset %}
+    {% assign end = current | plus: offset %}
+
+    {% if start < 1 %}
+      {% assign start = 1 %}
+      {% assign end = limit %}
+    {% endif %}
+
+    {% if end > total %}
+      {% assign end = total %}
+      {% assign start = total | minus: limit | plus: 1 %}
+    {% endif %}
+    
+    {% if start < 1 %}{% assign start = 1 %}{% endif %}
+
+    {% for page in (start..end) %}
+      {% if page == current %}
+        <span class="current-page">{{ page }}</span>
+      {% elsif page == 1 %}
+        <a href="{{ '/' | relative_url }}">1</a>
+      {% else %}
+        <a href="{{ site.paginate_path | relative_url | replace: ':num', page }}">{{ page }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if current < total %}
+      <a href="{{ site.paginate_path | relative_url | replace: ':num', total }}">Cuối</a>
+    {% endif %}
+
+  </div>
   {% endif %}
-
 </div>
-{% endif %}
 <footer class="footer-section" style="background: linear-gradient(to bottom, #1a1131, #0a0a0a); padding: 30px 0 15px 0; margin-top: 40px; border-top: 1px solid rgba(247, 143, 144, 0.2); font-family: 'Segoe UI', Roboto, sans-serif; color: #eee; width: 100%;">
     <div class="footer-container" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; width: 90%; max-width: 1300px; margin: 0 auto; gap: 20px;">   
         <div class="footer-col" style="flex: 1; min-width: 250px;">
