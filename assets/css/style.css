@@ -1375,3 +1375,32 @@ img {
     opacity: 0.4;
     pointer-events: none;
 }
+/* Hiệu ứng chuyển đổi mượt mà cho cả lưới game */
+.game-grid {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Khi đang giả vờ load: mờ đi và dịch nhẹ xuống */
+.game-grid.pitu-loading {
+    opacity: 0.2;
+    transform: translateY(10px);
+    pointer-events: none; /* Khóa không cho bấm bậy lúc đang load */
+}
+
+/* Hiệu ứng hiện hình mượt mà cho từng card game mới */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.game-card {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
