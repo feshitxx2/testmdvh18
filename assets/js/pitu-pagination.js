@@ -1,8 +1,8 @@
 (function() {
     const CONFIG = {
-        itemsPerLoad: 15, // Số lượng hiển thị thêm khi bấm nút hoặc cuộn xuống
-        currentShown: 15, // Số lượng mặc định ban đầu
-        fakeLoadTime: 400 // Giảm thời gian load giả lập xuống cho mượt
+        itemsPerLoad: 15,
+        currentShown: 15,
+        fakeLoadTime: 300
     };
 
     let originalHTML = ''; 
@@ -10,7 +10,7 @@
     let filteredCards = [];
     let filteredData = []; 
     let isFiltering = false;
-    let isScrollLoading = false; // Biến cờ chặn việc cuộn chuột trigger liên tục khi đang load
+    let isScrollLoading = false;
 
     function initPituEngine() {
         const grid = document.querySelector('.game-grid');
@@ -18,7 +18,7 @@
 
         const isHomePage = (typeof ALL_GAMES_DATA !== "undefined" && Array.isArray(ALL_GAMES_DATA));
 
-        // Lưu giữ HTML gốc và danh sách card sinh ra từ Liquid
+     
         originalHTML = grid.innerHTML;
         allCards = Array.from(grid.querySelectorAll('.game-card'));
 
@@ -41,7 +41,7 @@
             return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
         }
 
-        // GOM NÚT BỘ LỌC TỪ CẢ 2 NGUỒN
+     
         if (isHomePage) {
             ALL_GAMES_DATA.forEach(game => {
                 if (game.gametype && game.gametype.toString().trim()) gametypes.set(game.gametype.toString().trim().toLowerCase(), formatTagDisplay(game.gametype));
@@ -67,7 +67,7 @@
             }
         });
 
-        // TẠO NÚT TRÊN SIDEBAR
+    
         function createFilterBtns(mapItems, containerFilter, type) {
             if (!containerFilter) return;
             containerFilter.innerHTML = '';
@@ -87,7 +87,7 @@
                     if (grid.classList.contains('pitu-loading')) return;
 
                     this.classList.toggle('active');
-                    CONFIG.currentShown = CONFIG.itemsPerLoad; // Reset mốc đếm về 15 khi chuyển bộ lọc
+                    CONFIG.currentShown = CONFIG.itemsPerLoad; 
                     applyFilter();
                 };
                 btnFilter.dataset.val = keyVal;
@@ -179,12 +179,12 @@
             `;
         }
 
-        // HÀM ĐIỀU KHIỂN ĐỌC HIỂN THỊ VÀ TÍNH TOÁN PHÂN TRANG CHUẨN XÁC
+     
         function renderGridDisplay() {
             let totalAvailable = 0;
 
             if (isHomePage && isFiltering) {
-                // 1. TRANG CHỦ + ĐANG BẬT BỘ LỌC (Dùng data tổng mảng tĩnh)
+            
                 totalAvailable = filteredData.length;
                 const itemsToShow = filteredData.slice(0, CONFIG.currentShown);
 
@@ -196,8 +196,7 @@
                     grid.innerHTML = htmlContent;
                 }
             } else {
-                // 2. TRANG CON HOẶC TRANG CHỦ MẶC ĐỊNH KHÔNG FILTER (Dùng DOM HTML trực tiếp)
-                // Ép ẩn toàn bộ card có trong danh sách gốc để kiểm soát lại
+             
                 allCards.forEach(card => card.style.setProperty('display', 'none', 'important'));
                 
                 const currentArray = isFiltering ? filteredCards : allCards;
@@ -217,18 +216,18 @@
                 } else {
                     const noResultEl = grid.querySelector('.no-results');
                     if (noResultEl) noResultEl.style.display = 'none';
-                    // Hiện đúng số lượng chỉ định từ mốc slice
+             
                     itemsToShow.forEach(card => card.style.setProperty('display', 'block', 'important'));
                 }
             }
 
-            // ĐIỀU KHIỂN NÚT XEM THÊM CHÍNH XÁC THEO TỔNG SỐ LƯỢNG GAME THỰC TẾ ĐANG CÓ
+       
             if (isHomePage && !isFiltering) {
-                // Trang chủ không bật lọc -> Hiện phân trang tĩnh Jekyll, ẩn cụm Xem thêm JS đi
+           
                 if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
                 if (jekyllPaginator) jekyllPaginator.style.setProperty('display', 'block', 'important');
             } else {
-                // Trang con HOẶC Trang chủ khi lọc -> Ẩn phân trang Jekyll, bật nút Xem thêm JS
+            
                 if (jekyllPaginator) jekyllPaginator.style.setProperty('display', 'none', 'important');
                 
                 if (loadMoreContainer) {
@@ -244,29 +243,29 @@
                 try { loadVisibleImages(); } catch(e) {}
             }
             
-            // Giải phóng trạng thái chặn load khi cuộn chuột hoàn tất
+      
             isScrollLoading = false; 
         }
 
-        // GẮN LẠI SỰ KIỆN CLICK NÚT XEM THÊM - KHÔNG BỊ TRÙNG LẶP ĐÈ CHẾT LỆNH
+    
         if (loadMoreBtn) {
             loadMoreBtn.onclick = function(e) {
                 e.preventDefault();
-                CONFIG.currentShown += CONFIG.itemsPerLoad; // Tăng thêm 15 game hiển thị
+                CONFIG.currentShown += CONFIG.itemsPerLoad;
                 renderGridDisplay();
             };
         }
 
-        // TỰ ĐỘNG LOAD KHI KÉO XUỐNG DƯỚI (SCROLL LAZY LOAD) KHI ĐANG BẬT BỘ LỌC
+    
         window.addEventListener('scroll', function() {
-            // Chỉ chạy tính năng này khi hệ thống đang được kích hoạt bộ lọc (isFiltering === true)
+       
             if (!isFiltering || isScrollLoading) return;
 
-            // Kiểm tra xem vị trí cuộn đã gần chạm đáy màn hình chưa (cách đáy 150px)
+        
             if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 150)) {
                 let totalAvailable = isHomePage ? filteredData.length : filteredCards.length;
                 
-                // Nếu số lượng hiển thị hiện tại vẫn nhỏ hơn tổng số game lọc được thì tiếp tục tăng mốc hiển thị lên
+            
                 if (CONFIG.currentShown < totalAvailable) {
                     isScrollLoading = true;
                     CONFIG.currentShown += CONFIG.itemsPerLoad;
@@ -275,7 +274,7 @@
             }
         });
 
-        // HÀM XỬ LÝ LỌC
+
         function applyFilter() {
             const activeGametypes = Array.from(document.querySelectorAll('.filter-btn[data-type="gametype"].active')).map(b => b.dataset.val);
             const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
@@ -338,7 +337,7 @@
             toggleFilterBtn.onclick = function(e) {
                 e.preventDefault();
                 
-                // Chỉ kích hoạt chức năng ẩn/hiện khi độ rộng màn hình nhỏ hơn hoặc bằng 992px
+            
                 if (window.innerWidth <= 992) {
                     filterContent.classList.toggle('show');
                     
