@@ -1430,51 +1430,112 @@ img {
     }
 
     /* Thanh chứa bộ lọc đẩy xuống dưới hoặc lên trên tùy vị trí HTML, rộng 100% */
+    /* GIAO DIỆN MẶC ĐỊNH TRÊN PC */
+.toggle-filter-btn {
+    display: none; /* PC ẩn nút này đi */
+}
+.filter-content-wrapper {
+    display: block !important; /* PC luôn luôn hiện thẳng bộ lọc ra */
+}
+.filter-box {
+    background: #12091d;
+    border: 1px solid #d4487f;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    color: white;
+}
+.filter-btn {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 3px;
+    background: #2b1545;
+    border: 1px solid #d4487f;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 12px;
+}
+.filter-btn.active { background: #d4487f; }
+
+/* TỐI ƯU RIÊNG CHO ĐIỆN THOẠI & MÁY TÍNH BẢNG */
+@media screen and (max-width: 992px) {
+    .main-content-wrapper {
+        flex-direction: column !important;
+        gap: 15px !important;
+        padding: 0 10px !important;
+    }
+
+    .game-grid {
+        width: 100% !important;
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        gap: 12px !important;
+        margin-bottom: 25px !important;
+    }
+
+    .game-card {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
     .sidebar-right {
         width: 100% !important;
-        position: static !important; /* Hủy dính (sticky) để cuộn tự nhiên theo trang */
+        position: static !important;
+        order: -1; /* Đẩy bộ lọc lên trên lưới game trên mobile */
     }
 
-    /* Khung bộ lọc giãn khoảng cách rộng rãi, ôm vừa vặn các ngón tay */
-    .filter-box {
-        padding: 18px 15px !important;
-        margin-bottom: 15px !important;
+    /* HIỆN NÚT BẤM TRÊN MOBILE */
+    .toggle-filter-btn {
+        display: block !important;
+        width: 100%;
+        padding: 12px;
+        background: #2b1545;
+        border: 1px solid #d4487f;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: center;
+        margin-bottom: 10px;
     }
 
-    .filter-box h3 {
-        font-size: 15px !important;
-        margin-top: 0;
-        margin-bottom: 12px !important;
-        letter-spacing: 0.5px;
+    /* ÉP ẨN KHUNG BỘ LỌC TRÊN MOBILE KHI CHƯA BẤM NÚT */
+    .filter-content-wrapper {
+        display: none !important;
     }
 
-    /* TĂNG KÍCH THƯỚC NÚT BẤM FILTER: Giúp trải nghiệm chạm bằng ngón tay trên mobile chuẩn xác */
+    /* KHI ĐƯỢC THÊM CLASS .show THÌ MỚI HIỆN TRÊN MOBILE */
+    .filter-content-wrapper.show {
+        display: block !important;
+    }
+
+    /* Tăng kích thước nút bấm trên mobile cho vừa ngón tay */
     .filter-btn, .show-more-btn {
-        padding: 8px 14px !important; /* Tăng khoảng trống trong nút */
-        margin: 5px 4px !important;   /* Giãn khoảng cách giữa các nút để tránh bấm nhầm */
-        font-size: 13px !important;   /* Chữ to lên một chút dễ đọc */
+        padding: 8px 14px !important;
+        margin: 5px 4px !important;
+        font-size: 13px !important;
     }
 
-    /* Ô tìm kiếm tag nhanh */
     #pitu-tag-search {
+        width: 100%;
         padding: 10px 12px !important;
         font-size: 14px !important;
         background: #2b1545 !important;
         border: 1px solid #d4487f !important;
         color: white !important;
+        outline: none;
+        border-radius: 4px;
     }
 }
 
-/* TỐI ƯU CHUYÊN BIỆT CHO MÀN HÌNH ĐIỆN THOẠI DỌC NHỎ (DƯỚI 480PX) */
 @media screen and (max-width: 480px) {
     .game-grid {
-        /* Ép cứng hiển thị chính xác 2 cột game song song cực đẹp trên phone */
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 10px !important;
     }
-
     .card-info h3 {
-        font-size: 13px !important; /* Thu nhỏ tiêu đề vừa khít với card 2 cột */
-        line-height: 1.4 !important;
+        font-size: 13px !important;
     }
 }
