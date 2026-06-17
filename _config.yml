@@ -4,8 +4,7 @@ markdown: kramdown
 baseurl: "/testmdvh18"
 permalink: /:title/
 plugins:
-
-jekyll-paginate
+  - jekyll-paginate
 
 paginate: 15
 paginate_path: "/page:num/"
