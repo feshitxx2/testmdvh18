@@ -1404,32 +1404,77 @@ img {
 .game-card {
     animation: fadeInUp 0.4s ease-out forwards;
 }
-
-/* TỐI ƯU GIAO DIỆN TRÊN ĐIỆN THOẠI & MÁY TÍNH BẢNG */
+/* TỐI ƯU RESPONSIVE HÀI HÒA CHO ĐIỆN THOẠI & MÁY TÍNH BẢNG */
 @media screen and (max-width: 992px) {
-    .sidebar-right {
-        width: 100% !important;
-        position: static !important;
+    /* Đưa giao diện tổng thể về dạng 1 cột dọc thẳng đứng */
+    .main-content-wrapper {
+        flex-direction: column !important;
+        gap: 20px !important;
         padding: 0 10px !important;
     }
 
+    /* Đẩy lưới game chiếm trọn chiều ngang màn hình */
+    .game-grid {
+        width: 100% !important;
+        display: grid !important;
+        /* Tự động chia cột dựa trên độ rộng: tối thiểu 150px một card để vừa vặn mobile */
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        gap: 12px !important;
+        margin-bottom: 25px !important;
+    }
 
+    /* Ép card game bỏ các thuộc tính float hoặc width dạng px cố định của PC */
+    .game-card {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    /* Thanh chứa bộ lọc đẩy xuống dưới hoặc lên trên tùy vị trí HTML, rộng 100% */
+    .sidebar-right {
+        width: 100% !important;
+        position: static !important; /* Hủy dính (sticky) để cuộn tự nhiên theo trang */
+    }
+
+    /* Khung bộ lọc giãn khoảng cách rộng rãi, ôm vừa vặn các ngón tay */
     .filter-box {
-        background: #f9f9f9; 
-        padding: 15px !important;
-        border-radius: 8px !important;
+        padding: 18px 15px !important;
         margin-bottom: 15px !important;
     }
 
-    .filter-btn, .show-more-btn {
-        padding: 8px 14px !important;
-        margin: 4px !important;
-        font-size: 13px !important;
-        display: inline-block !important;
+    .filter-box h3 {
+        font-size: 15px !important;
+        margin-top: 0;
+        margin-bottom: 12px !important;
+        letter-spacing: 0.5px;
     }
 
+    /* TĂNG KÍCH THƯỚC NÚT BẤM FILTER: Giúp trải nghiệm chạm bằng ngón tay trên mobile chuẩn xác */
+    .filter-btn, .show-more-btn {
+        padding: 8px 14px !important; /* Tăng khoảng trống trong nút */
+        margin: 5px 4px !important;   /* Giãn khoảng cách giữa các nút để tránh bấm nhầm */
+        font-size: 13px !important;   /* Chữ to lên một chút dễ đọc */
+    }
+
+    /* Ô tìm kiếm tag nhanh */
     #pitu-tag-search {
-        padding: 10px 12px !important; /
-        font-size: 15px !important;
+        padding: 10px 12px !important;
+        font-size: 14px !important;
+        background: #2b1545 !important;
+        border: 1px solid #d4487f !important;
+        color: white !important;
+    }
+}
+
+/* TỐI ƯU CHUYÊN BIỆT CHO MÀN HÌNH ĐIỆN THOẠI DỌC NHỎ (DƯỚI 480PX) */
+@media screen and (max-width: 480px) {
+    .game-grid {
+        /* Ép cứng hiển thị chính xác 2 cột game song song cực đẹp trên phone */
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    .card-info h3 {
+        font-size: 13px !important; /* Thu nhỏ tiêu đề vừa khít với card 2 cột */
+        line-height: 1.4 !important;
     }
 }
