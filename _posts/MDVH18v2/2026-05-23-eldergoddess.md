@@ -15,7 +15,7 @@ platform: "PC"
 dungluong: "1.2GB"
 phienban: "Completed"
 dev: "Bunny Alice Games"
-genre: "2D Game, 2DCG, Censored, Childbirth, Clothes Changing, Dress up, Collar, Chain, Restraints, Corrupted Morals, Interspecies Sex, Japanese Game, Prostitution, Paid Dating, Shame, Humiliation"
+genre: "2D Game, 2DCG, 3dcg, Censored, Childbirth, Clothes Changing, Dress up, Collar, Chain, Restraints, Corrupted Morals, Interspecies Sex, Japanese Game, Prostitution, Paid Dating, Shame, Humiliation"
 
 linkpixel: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L25haEdYcm1l"
 linkgofile: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9nb2ZpbGUuaW8vZC95SEM1Ykc="
