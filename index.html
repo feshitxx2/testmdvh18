@@ -229,6 +229,11 @@ layout: default
 
 </div>
 {% endif %}
+{% for post in site.posts %}
+  <div class="game-card" data-genres="{{ post.genre | downcase | replace: ', ', ',' }}">
+    <h3>{{ post.title }}</h3>
+    </div>
+{% endfor %}
 <footer class="footer-section" style="background: linear-gradient(to bottom, #1a1131, #0a0a0a); padding: 30px 0 15px 0; margin-top: 40px; border-top: 1px solid rgba(247, 143, 144, 0.2); font-family: 'Segoe UI', Roboto, sans-serif; color: #eee; width: 100%;">
     <div class="footer-container" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; width: 90%; max-width: 1300px; margin: 0 auto; gap: 20px;">   
         <div class="footer-col" style="flex: 1; min-width: 250px;">
