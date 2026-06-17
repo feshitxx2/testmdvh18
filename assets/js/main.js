@@ -80,3 +80,40 @@ if (document.readyState === 'complete') {
 const observer = new MutationObserver((mutations) => {
     renderGridImages();
 });
+let activeFilters = [];
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Toggle class active
+    btn.classList.toggle('active');
+    
+    const genre = btn.dataset.genre;
+    
+    // Cập nhật danh sách activeFilters
+    if(activeFilters.includes(genre)) {
+      activeFilters = activeFilters.filter(f => f !== genre);
+    } else {
+      activeFilters.push(genre);
+    }
+
+    // Lọc game
+    document.querySelectorAll('.game-card').forEach(card => {
+      // Lấy danh sách genre của game, cắt bỏ khoảng trắng thừa
+      const cardGenres = card.getAttribute('data-genres')
+                             .split(',')
+                             .map(g => g.trim());
+      
+      // Logic AND: Mọi filter trong activeFilters đều phải có trong cardGenres
+      const isMatch = activeFilters.length === 0 || 
+                      activeFilters.every(f => cardGenres.includes(f));
+      
+      card.style.display = isMatch ? 'block' : 'none';
+    });
+  });
+});
+// Thêm 1 nút "Xem thêm" trong HTML của bạn
+const toggleBtn = document.getElementById('toggle-btn');
+toggleBtn.addEventListener('click', () => {
+    document.getElementById('genre-sidebar').classList.toggle('show-all');
+    toggleBtn.innerText = document.getElementById('genre-sidebar').classList.contains('show-all') ? "Thu gọn" : "...";
+});
