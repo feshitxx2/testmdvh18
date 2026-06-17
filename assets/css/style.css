@@ -1336,3 +1336,30 @@ img {
         font-size: 12px;
     }
 }
+.main-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  max-width: 1200px; /* Hoặc width web của bạn */
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+.content-wrapper {
+  flex: 3; /* Chiếm 3/4 chiều rộng */
+  min-width: 0; /* Tránh lỗi vỡ layout */
+}
+
+.sidebar-wrapper {
+  flex: 1; /* Chiếm 1/4 chiều rộng */
+  position: sticky;
+  top: 100px; /* Điều chỉnh khoảng cách từ đỉnh khi cuộn trang */
+}
+
+.sidebar-box {
+  background: #12091d;
+  border: 1px solid #d4487f;
+  padding: 20px;
+  color: white;
+  border-radius: 8px;
+}
