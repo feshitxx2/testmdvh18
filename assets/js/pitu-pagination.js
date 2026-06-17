@@ -14,7 +14,7 @@
         }
 
         // Đảm bảo lấy đúng các Class/ID đang chạy tốt ở bản cũ của bạn
-        const cards = document.querySelectorAll('.game-grid'); 
+        const cards = document.querySelectorAll('.game-card'); 
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
         const grid = document.querySelector('.game-grid') || document.querySelector('.pitu-grid'); 
