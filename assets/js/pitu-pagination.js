@@ -1,6 +1,6 @@
 (function() {
     const CONFIG = {
-        itemsPerLoad: 15, // Số lượng hiển thị thêm khi bấm nút
+        itemsPerLoad: 15, // Số lượng hiển thị thêm khi bấm nút hoặc cuộn xuống
         currentShown: 15, // Số lượng mặc định ban đầu
         fakeLoadTime: 300 // Giảm thời gian load giả lập xuống cho mượt
     };
@@ -10,6 +10,7 @@
     let filteredCards = [];
     let filteredData = []; 
     let isFiltering = false;
+    let isScrollLoading = false; // Biến cờ chặn việc cuộn chuột trigger liên tục khi đang load
 
     function initPituEngine() {
         const grid = document.querySelector('.game-grid');
@@ -242,6 +243,9 @@
             if (typeof loadVisibleImages === 'function') {
                 try { loadVisibleImages(); } catch(e) {}
             }
+            
+            // Giải phóng trạng thái chặn load khi cuộn chuột hoàn tất
+            isScrollLoading = false; 
         }
 
         // GẮN LẠI SỰ KIỆN CLICK NÚT XEM THÊM - KHÔNG BỊ TRÙNG LẶP ĐÈ CHẾT LỆNH
@@ -252,6 +256,24 @@
                 renderGridDisplay();
             };
         }
+
+        // TỰ ĐỘNG LOAD KHI KÉO XUỐNG DƯỚI (SCROLL LAZY LOAD) KHI ĐANG BẬT BỘ LỌC
+        window.addEventListener('scroll', function() {
+            // Chỉ chạy tính năng này khi hệ thống đang được kích hoạt bộ lọc (isFiltering === true)
+            if (!isFiltering || isScrollLoading) return;
+
+            // Kiểm tra xem vị trí cuộn đã gần chạm đáy màn hình chưa (cách đáy 150px)
+            if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 150)) {
+                let totalAvailable = isHomePage ? filteredData.length : filteredCards.length;
+                
+                // Nếu số lượng hiển thị hiện tại vẫn nhỏ hơn tổng số game lọc được thì tiếp tục tăng mốc hiển thị lên
+                if (CONFIG.currentShown < totalAvailable) {
+                    isScrollLoading = true;
+                    CONFIG.currentShown += CONFIG.itemsPerLoad;
+                    renderGridDisplay();
+                }
+            }
+        });
 
         // HÀM XỬ LÝ LỌC
         function applyFilter() {
