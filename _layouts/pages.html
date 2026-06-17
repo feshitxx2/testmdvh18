@@ -101,64 +101,87 @@
 
 {% assign posts = site.posts | limit: 5 %}   
     
-<div class="main-content-wrapper">
-   <div class="game-grid">
-  {% assign posts = site.posts %}
+<div class="main-content-wrapper" style="display: flex; gap: 5px; align-items: flex-start; width: 100%;">
+  
+  <div class="game-grid">
+    {% assign posts = site.posts %}
 
-{% if page.gametype %}
-  {% assign posts = posts | where: "gametype", page.gametype %}
-{% endif %}
-
-{% if page.genre %}
-
-  {% assign filtered_posts = "" | split: "" %}
-
-  {% for post in posts %}
-
-    {% if post.genre %}
-
-      {% assign genres = post.genre | downcase | split: "," %}
-
-      {% for genre in genres %}
-
-        {% assign clean_genre = genre | strip %}
-
-        {% if clean_genre == page.genre | downcase %}
-
-          {% assign filtered_posts = filtered_posts | push: post %}
-          {% break %}
-
-        {% endif %}
-
-      {% endfor %}
-
+    {% if page.gametype %}
+      {% assign posts = posts | where: "gametype", page.gametype %}
     {% endif %}
 
-  {% endfor %}
+    {% if page.genre %}
+      {% assign filtered_posts = "" | split: "" %}
+      {% for post in posts %}
+        {% if post.genre %}
+          {% assign genres = post.genre | downcase | split: "," %}
+          {% for genre in genres %}
+            {% assign clean_genre = genre | strip %}
+            {% if clean_genre == page.genre | downcase %}
+              {% assign filtered_posts = filtered_posts | push: post %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+      {% assign posts = filtered_posts %}
+    {% endif %}
 
-  {% assign posts = filtered_posts %}
-{% endif %}
+    {% if page.tags %}
+      {% assign posts = posts | where_exp: "post", "post.tags contains page.tags[0]" %}
+    {% endif %}
 
-{% if page.tags %}
-  {% assign posts = posts | where_exp: "post", "post.tags contains page.tags[0]" %}
-{% endif %}
+    {% comment %} Vòng lặp hiển thị Card Game - Giữ nguyên class pitu-item và style="display: none;" cho phân trang cũ {% endcomment %}
+    {% for post in posts %}
+      <div class="game-card pitu-item" data-engine="{{ post.engine }}" data-genres="{{ post.genre }}" data-gametype="{{ post.gametype }}" style="display: none;"> 
+        <a href="{{ post.url | relative_url }}">
+          <div class="card-thumb">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
+                 class="grid-pitu-img" 
+                 data-pitu="{{ post.pitu_id }}" 
+                 alt="{{ post.title }}">
 
-{% for post in posts %}
-  <div class="game-card pitu-item" style="display: none;"> 
-    <a href="{{ post.url | relative_url }}">
-      <div class="card-thumb">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
-             class="grid-pitu-img" 
-             data-pitu="{{ post.pitu_id }}" 
-             alt="{{ post.title }}">
-        <i class="fa-solid fa-angles-down download-icon-fa"></i>
+            <div class="card-type-tags">
+              {% for type in post.typegame %}
+                <span class="tag-item tag-{{ type | downcase | slugify }}">{{ type }}</span>
+              {% endfor %}
+            </div>
+            <i class="fa-solid fa-angles-down download-icon-fa"></i> 
+
+            {% if post.categories.size > 0 %}
+              <div class="card-badge">{{ post.categories | first | replace: "-", " " }}</div>
+            {% endif %}
+          </div>
+
+          <div class="card-info">
+            <h3>{{ post.namebanner | default: post.title }}</h3>
+          </div>
+        </a>
       </div>
-      <div class="card-info">
-        <h3>{{ post.namebanner | default: post.title }}</h3>
-      </div>
-    </a>
+    {% endfor %}
   </div>
-{% endfor %}
+
+  <aside class="sidebar-right" style="width: 300px; flex-shrink: 0; position: sticky; top: 20px;">
+    <div class="filter-box" style="margin-bottom: 20px;">
+      <h3>THỂ LOẠI GAME</h3>
+      <div id="gametype-filters"></div>
+    </div>
+
+    <div class="filter-box" style="margin-bottom: 20px;">
+      <h3>GAME ENGINE</h3>
+      <div id="engine-filters"></div>
+    </div>
+    
+    <div class="filter-box">
+      <h3>TAGS GAME</h3>
+      <div class="search-tag-wrapper" style="margin-bottom: 12px;">
+        <input type="text" id="pitu-tag-search" placeholder="Tìm nhanh tag..." style="width: 100%; padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none;">
+      </div>
+      <div id="genre-filters"></div>
+    </div>
+  </aside>
+
+</div>
 
 <div id="load-more-container" style="text-align: center; margin: 40px 0; display: none;">
     <button id="btn-load-more" class="pagination-a" style="cursor:pointer; border:none; font-family:inherit;">
