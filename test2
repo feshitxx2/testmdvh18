@@ -1,0 +1,51 @@
+---
+layout: game
+pitu_id: ""
+date: 2026-06-01 11:30:00 +0700
+title: " - MDVH18"
+tags: [all, mdvh18, allvh, pc, apk]
+typegame: ["PC", "APK"]
+namebanner: "[Việt Hóa]  - [B]"
+mota: |
+
+gametype: "Visual Novel"
+engine: ""
+language: "Tiếng Việt"
+mdvh18: "MDVH18"
+timeplay: ""
+platform: "APK/PC"
+dungluong: ""
+phienban: ""
+dev: ""
+genre: ""
+
+linkpixelapk: "https://mdvh18.github.io/download.html?url="
+linkpixelpc: "https://mdvh18.github.io/download.html?url="
+linkteraapkpc: "https://mdvh18.github.io/download.html?url="
+---
+
+---
+layout: game
+pitu_id: ""
+date: 2026-02-23 15:30:00 +0700
+title: " - MDVH18"
+tags: [all, english, apk, pc]
+typegame: ["PC", "APK"]
+namebanner: "[ENG] - [B]"
+mota: |
+
+
+infor: |
+
+gametype: "Visual Novel"
+language: "English"
+platform: "APK/PC"
+dungluong: "B"
+phienban: ""
+dev: ""
+genre: ""
+
+linkpixel: "https://mdvh18.github.io/download.html?url="
+linkpixel: "https://mdvh18.github.io/download.html?url="
+linkteraapkpc: "https://mdvh18.github.io/download.html?url="
+---

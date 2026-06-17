@@ -1,0 +1,10 @@
+title: MDVH18
+url: "https://mdvh18.com"
+markdown: kramdown
+baseurl: ""
+permalink: /:title/
+plugins:
+  - jekyll-paginate
+
+paginate: 15
+paginate_path: "/page:num/"

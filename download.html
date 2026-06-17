@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+ <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-K15TLSNWWT');
+</script>   
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang Chuyển Hướng An Toàn... | MDVH18</title>
+    <style>
+        body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        .box { text-align: center; background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(215, 155, 187, 0.2); max-width: 400px; width: 90%; }
+        .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #f78f90; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #timer { font-size: 3em; color: #d79bbb; font-weight: bold; margin: 10px 0; }
+        .btn-manual, .btn-fast { display: inline-block; background: #f78f90; color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; transition: 0.3s; cursor: pointer; border: none; font-family: inherit; }
+        .btn-manual { display: none; }
+        .btn-fast { background: rgba(255, 255, 255, 0.1); border: 1px solid #f78f90; font-size: 0.9em; }
+        .btn-manual:hover, .btn-fast:hover { background: #fff; color: #f78f90; box-shadow: 0 0 15px #f78f90; }
+        
+        .toast-custom { position: fixed; bottom: 30px; right: 30px; background: #1a1131; color: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10000; font-family: "Segoe UI", sans-serif; max-width: 320px; animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        #pixeldrain-toast a:hover { background: #fff !important; color: #f78f90 !important; }
+        #terabox-toast a:hover { background: #fff !important; color: #54b5f5 !important; }
+    </style>
+</head>
+<body>
+    <div class="box" id="main-box">
+        <div class="loader"></div>
+        <h3>HỆ THỐNG ĐANG KIỂM TRA</h3>
+        <p>Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.</p>
+        <div id="timer">4</div>
+        <button id="fast-link" class="btn-fast">TIẾP TỤC NGAY</button>
+        <a id="manual-link" class="btn-manual" href="#">NHẤN VÀO ĐÂY NẾU KHÔNG TỰ CHUYỂN</a>
+    </div>
+
+    <script>
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let encoded = urlParams.get('url');
+        const timerEl = document.getElementById('timer');
+        const manualBtn = document.getElementById('manual-link');
+        const fastBtn = document.getElementById('fast-link');
+        const boxEl = document.getElementById('main-box');
+        
+        let targetUrl = "";
+
+        if (encoded) {
+            try {
+                let cleanEncoded = encoded.trim().replace(/\s/g, '+');
+                targetUrl = atob(cleanEncoded);
+                targetUrl = targetUrl.replace(/[^\x21-\x7E]/g, '').trim();
+
+                if (targetUrl.includes('mdvh18.github.io/mdvh18/')) {
+                    targetUrl = targetUrl.replace('mdvh18.github.io/mdvh18/', 'mdvh18.github.io/');
+                }
+
+                const redirectNow = (url) => {
+                    const ghostLink = document.createElement('a');
+                    ghostLink.href = url;
+                    ghostLink.rel = "noreferrer";
+                    document.body.appendChild(ghostLink);
+                    ghostLink.click();
+                    setTimeout(() => window.location.replace(url), 300);
+                };
+
+                // Gán sự kiện cho nút Tiếp tục ngay
+                if (fastBtn) {
+                    fastBtn.onclick = () => redirectNow(targetUrl);
+                }
+
+                if (targetUrl.includes('drive.google.com')) {
+                    redirectNow(targetUrl);
+                    return; 
+                }
+
+                if (targetUrl.includes('pixeldrain.com')) {
+                    showToast('🚀', 'Phát hiện Pixeldrain!', 'Giới hạn 6GB/ngày. Xem FAQ để biết mẹo tải.', '#f78f90');
+                } else if (/terabox|1024tera|teraboxapp/.test(targetUrl)) {
+                    showToast('☁️', 'Phát hiện Terabox!', 'Nên dùng App hoặc đăng nhập để tải nhanh hơn.', '#54b5f5');
+                } else if (targetUrl.includes('buzzheavier.com')) {
+                    showToast('⚡', 'Phát hiện Buzzheavier!', 'Dịch vụ tốc độ cao. Nếu lỗi hãy tắt VPN.', '#ffeb3b');
+                }
+
+                let timeLeft = 3;
+                const countdown = setInterval(() => {
+                    timeLeft--;
+                    if (timerEl) timerEl.innerText = timeLeft;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        if (fastBtn) fastBtn.style.display = 'none'; // Ẩn nút nhanh khi đã hết giờ
+                        if (manualBtn) {
+                            manualBtn.href = targetUrl;
+                            manualBtn.style.display = 'inline-block';
+                        }
+                        redirectNow(targetUrl);
+                    }
+                }, 1000);
+
+            } catch (e) {
+                boxEl.innerHTML = "<h3>LỖI GIẢI MÃ</h3><p>Link không hợp lệ.</p>";
+            }
+        } else {
+            boxEl.innerHTML = "<h3>LỖI ĐƯỜNG DẪN</h3><p>Không tìm thấy liên kết.</p>";
+        }
+
+        function showToast(icon, title, desc, color) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-custom';
+            toast.style.cssText = `border: 2px solid ${color}; padding: 15px; background: #1a1131; border-radius: 10px; position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 300px; transition: 0.5s; box-shadow: 0 4px 15px rgba(0,0,0,0.5);`;
+            toast.innerHTML = `
+                <div style="display:flex; align-items:center; margin-bottom:10px;">
+                    <span style="font-size:24px; margin-right:10px;">${icon}</span>
+                    <strong style="color:${color}; font-size:16px;">${title}</strong>
+                </div>
+                <p style="font-size:13px; line-height:1.4; margin-bottom:12px; color:#e0e0e0;">${desc}</p>
+                <div style="text-align:right;">
+                    <a href="https://mdvh18.blogspot.com/p/faq.html" target="_blank" style="background:${color}; color:#1a1131; padding:4px 10px; border-radius:15px; text-decoration:none; font-weight:bold; font-size:11px;">XEM FAQ</a>
+                </div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(150%)';
+                setTimeout(() => toast.remove(), 800);
+            }, 8000);
+        }
+    })();
+</script>
+</body>
+</html>
