@@ -1,10 +1,11 @@
 title: MDVH18
-url: "https://mdvh18.com"
+url: "https://feshitxx2.github.io"
 markdown: kramdown
-baseurl: ""
+baseurl: "/testmdvh18"
 permalink: /:title/
 plugins:
-  - jekyll-paginate
+
+jekyll-paginate
 
 paginate: 15
 paginate_path: "/page:num/"
