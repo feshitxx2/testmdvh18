@@ -143,13 +143,14 @@ layout: default
     
 {% assign posts = site.posts | limit: 5 %}
 
-<div class="main-content-wrapper">
-  <div class="game-grid">
+<div class="main-content-wrapper" style="display: flex; gap: 20px; align-items: flex-start; width: 100%;">
+  
+  <div class="game-grid" style="flex: 1;">
     {% assign sorted_posts = paginator.posts | sort: 'date' | reverse %}
     {% for post in sorted_posts %}
-      
       {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
-      <div class="game-card">
+      
+      <div class="game-card" data-engine="{{ post.engine }}" data-genres="{{ post.genre }}">
         <a href="{{ post.url | relative_url }}">
           <div class="card-thumb">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
@@ -162,16 +163,6 @@ layout: default
                 <span class="tag-item tag-{{ type | downcase | slugify }}">{{ type }}</span>
               {% endfor %}
             </div>
-            <aside class="sidebar-right" style="width: 250px; flex-shrink: 0; position: sticky; top: 20px;">
-        <div class="filter-box">
-            <h3>GAME ENGINE</h3>
-            <div id="engine-filters"></div>
-        </div>
-        <div class="filter-box">
-            <h3>THỂ LOẠI</h3>
-            <div id="genre-filters"></div>
-        </div>
-    </aside>
             <i class="fa-solid fa-angles-down download-icon-fa"></i> 
 
             {% if post.categories.size > 0 %}
@@ -186,6 +177,17 @@ layout: default
       </div>
     {% endfor %}
   </div>
+
+  <aside class="sidebar-right" style="width: 300px; flex-shrink: 0; position: sticky; top: 20px;">
+    <div class="filter-box">
+      <h3>GAME ENGINE</h3>
+      <div id="engine-filters"></div>
+    </div>
+    <div class="filter-box">
+      <h3>THỂ LOẠI VISUAL NOVEL</h3>
+      <div id="genre-filters"></div>
+    </div>
+  </aside>
 </div>
 {% if paginator.total_pages > 1 %}
 <div class="pagination">
