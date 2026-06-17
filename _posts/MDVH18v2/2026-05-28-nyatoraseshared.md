@@ -15,7 +15,7 @@ platform: "APK/PC"
 dungluong: "2.3GB"
 phienban: "v0.14"
 dev: "SadCat"
-genre: "2dcg, AI CG, Big Ass, Big Tits, Female Domination, Male Protagonist, Mobile Game, Monster Girl, Netorare, Oral Sex, Sex Toys, Swinging, Titfuck, Vaginal Sex"
+genre: "2dcg, 3dcg, AI CG, Big Ass, Big Tits, Female Domination, Male Protagonist, Mobile Game, Monster Girl, Netorare, Oral Sex, Sex Toys, Swinging, Titfuck, Vaginal Sex"
 
 linkpixelapk: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L1ZaZW9lZGNC"
 linkpixelpc: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L29FVW4zb25U"
