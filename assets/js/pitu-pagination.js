@@ -245,25 +245,13 @@
         }
 
         // GẮN LẠI SỰ KIỆN CLICK NÚT XEM THÊM - KHÔNG BỊ TRÙNG LẶP ĐÈ CHẾT LỆNH
-        if (loadMoreContainer && loadMoreBtn) {
-
-    const autoLoadObserver = new IntersectionObserver(entries => {
-
-        if (!entries[0].isIntersecting) return;
-
-        if (
-            loadMoreContainer.style.display !== 'none' &&
-            getComputedStyle(loadMoreContainer).display !== 'none'
-        ) {
-            loadMoreBtn.click();
+        if (loadMoreBtn) {
+            loadMoreBtn.onclick = function(e) {
+                e.preventDefault();
+                CONFIG.currentShown += CONFIG.itemsPerLoad; // Tăng thêm 15 game hiển thị
+                renderGridDisplay();
+            };
         }
-
-    }, {
-        rootMargin: '300px'
-    });
-
-    autoLoadObserver.observe(loadMoreContainer);
-}
 
         // HÀM XỬ LÝ LỌC
         function applyFilter() {
