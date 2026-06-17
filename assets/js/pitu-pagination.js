@@ -13,10 +13,11 @@
             return;
         }
 
-        const cards = document.querySelectorAll('.pitu-item'); // Hoặc .pitu-item tùy class HTML của bạn
+        // Đảm bảo lấy đúng các Class/ID đang chạy tốt ở bản cũ của bạn
+        const cards = document.querySelectorAll('.pitu-item'); 
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
-        const grid = document.querySelector('.game-grid'); 
+        const grid = document.querySelector('.game-grid') || document.querySelector('.pitu-grid'); 
         
         const btn = document.getElementById('btn-load-more');
         const container = document.getElementById('load-more-container');
@@ -26,7 +27,7 @@
         const engines = new Map();
         const genres = new Map();
 
-        // Thu thập dữ liệu bộ lọc từ các thẻ game
+        // Thu thập dữ liệu bộ lọc từ các thẻ game (.pitu-item)
         cards.forEach(card => {
             if(card.dataset.engine) {
                 const raw = card.dataset.engine.trim();
@@ -103,11 +104,11 @@
             // Chỉ hiển thị số lượng game thuộc danh sách đã filter theo giới hạn phân trang
             const itemsToShow = filteredItems.slice(0, CONFIG.currentShown);
             itemsToShow.forEach(item => {
-                item.style.display = 'flex'; // Hoặc 'block' tùy CSS giao diện của bạn
+                item.style.display = 'flex'; 
                 item.classList.add('is-visible');
             });
 
-            // Ẩn/Hiện thanh paginator hoặc nút Tải thêm dựa trên tổng số game sau khi filter
+            // Ẩn/Hiện cả container và nút Tải thêm dựa trên tổng số game sau khi filter
             if (container) {
                 container.style.display = (CONFIG.currentShown >= filteredItems.length) ? 'none' : 'block';
             }
@@ -145,7 +146,7 @@
 
         // Hàm xử lý Bộ lọc (Filter)
         function filter() {
-            // Ẩn ngay lập tức nút tải thêm / thanh paginator khi đang chọn filter
+            // Ẩn ngay lập tức nút tải thêm / thanh paginator khi đang xử lý filter
             if (container) container.style.display = 'none';
             if (btn) btn.style.display = 'none';
             
@@ -155,7 +156,7 @@
                 const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
                 const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
                 
-                // Trích xuất các game thỏa mãn điều kiện lọc đưa vào mảng filteredItems
+                // Lọc chính xác các card theo cấu trúc cũ
                 filteredItems = Array.from(cards).filter(card => {
                     const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
                     const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
