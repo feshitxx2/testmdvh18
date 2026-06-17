@@ -143,13 +143,19 @@ layout: default
     
 {% assign posts = site.posts | limit: 5 %}
 
-<div class="main-content-wrapper">
-  <div class="game-grid">
+<div class="main-content-wrapper" style="display: flex; gap: 20px; align-items: flex-start; max-width: 1200px; margin: 0 auto;">
+
+  <aside id="genre-sidebar" style="width: 250px; flex-shrink: 0; background: #12091d; border: 1px solid #d4487f; padding: 15px; color: white; border-radius: 8px;">
+    <h3 style="margin-top: 0;">BỘ LỌC GAME</h3>
+    <div id="filter-container"></div>
+  </aside>
+
+  <div class="game-grid" style="flex: 1;">
     {% assign sorted_posts = paginator.posts | sort: 'date' | reverse %}
     {% for post in sorted_posts %}
-      
       {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
-      <div class="game-card">
+      
+      <div class="game-card" data-genres="{{ post.genre | downcase }}">
         <a href="{{ post.url | relative_url }}">
           <div class="card-thumb">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
@@ -169,6 +175,15 @@ layout: default
               <div class="card-badge">{{ post.categories | first | replace: "-", " " }}</div>
             {% endif %}
           </div>
+
+          <div class="card-info">
+            <h3>{{ post.namebanner }}</h3>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
 
           <div class="card-info">
             <h3>{{ post.namebanner }}</h3>
