@@ -178,13 +178,13 @@ layout: default
     {% endfor %}
   </div>
 
-  <aside class="sidebar-right">
+  <aside class="sidebar-right" style="width: 300px; flex-shrink: 0; position: sticky; top: 20px;">
   <button type="button" id="pitu-toggle-filter" class="toggle-filter-btn">
     <i class="fa-solid fa-filter"></i> BỘ LỌC TÌM KIẾM
   </button>
 
   <div id="pitu-filter-content" class="filter-content-wrapper">
-    <div class="filter-box">
+    <div class="filter-box" style="margin-bottom: 20px;">
       <h3>THỂ LOẠI GAME</h3>
       <div id="gametype-filters"></div>
     </div>
@@ -197,7 +197,7 @@ layout: default
     <div class="filter-box">
       <h3>TAGS GAME</h3>
       <div class="search-tag-wrapper" style="margin-bottom: 12px;">
-        <input type="text" id="pitu-tag-search" placeholder="Tìm nhanh tag...">
+        <input type="text" id="pitu-tag-search" placeholder="Tìm nhanh tag..." style="width: 100%; padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none;">
       </div>
       <div id="genre-filters"></div>
     </div>
