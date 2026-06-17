@@ -1376,3 +1376,11 @@ img {
     font-size: 12px;
 }
 .filter-btn.active { background: #d4487f; }
+/* Hiệu ứng loading */
+.game-grid {
+    transition: opacity 0.3s ease;
+}
+.loading-grid {
+    opacity: 0.4;
+    pointer-events: none; /* Ngăn người dùng click khi đang load */
+}
