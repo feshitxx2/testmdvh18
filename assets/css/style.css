@@ -11,7 +11,9 @@ body {margin: 0;
 .main-content-wrapper {width: 100%;
     overflow: hidden;
     background: transparent;
-    flex: 1;}
+    justify-content: center;
+    margin: 0 auto;
+    padding: 0 10px;}
     
 .header-section {background: linear-gradient(to bottom, #12091d, #1b0e2a) !important;
     position: fixed !important;
@@ -455,9 +457,6 @@ h1, h2, h3, h4, span, p, div { cursor: inherit; }
     padding: 15px;
     max-width: 1380px;
     box-sizing: border-box;
-    justify-content: center;
-    margin: 0 auto;
-    padding: 0 10px;
            }
 
 .game-card {background: #1b0f2b;
