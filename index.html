@@ -114,7 +114,6 @@ layout: default
       <div class="slide-content">
         <h2>{{ post.namebanner }}</h2>
         <p>{{ post.mota }}</p>
-
         <div class="buttons">
           <a href="{{ post.url | relative_url }}" class="btn view">Xem bài</a>
           {% if post.download_link %}
@@ -172,8 +171,9 @@ layout: default
           </div>
 
           <div class="card-info">
-            <h3>{{ post.namebanner }}</h3>
-          </div>
+  <h3>{{ post.namebanner }}</h3>
+  <div class="card-pitu-rating" data-rating-id="{{ game_id }}" style="font-size: 12px; color: #ffca08; margin-top: 4px;"></div>
+</div>
         </a>
       </div>
     {% endfor %}
