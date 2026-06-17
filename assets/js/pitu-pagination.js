@@ -175,24 +175,30 @@
         }
 
         function renderFilteredGrid() {
-            const itemsToShow = filteredData.slice(0, CONFIG.currentShown);
-            
-            if (itemsToShow.length === 0) {
-                grid.innerHTML = '<div class="no-results" style="width:100%; text-align:center; padding: 40px; font-weight:bold; color:#888;">Không tìm thấy game tương thích bộ lọc!</div>';
-                return;
-            }
+    const itemsToShow = filteredData.slice(0, CONFIG.currentShown);
+    
+    if (itemsToShow.length === 0) {
+        grid.innerHTML = '<div class="no-results" style="width:100%; text-align:center; padding: 40px; font-weight:bold; color:#888;">Không tìm thấy game tương thích bộ lọc!</div>';
+        return;
+    }
 
-            let htmlContent = '';
-            itemsToShow.forEach(game => {
-                htmlContent += generateCardHTML(game);
-            });
-            
-            grid.innerHTML = htmlContent;
+    let htmlContent = '';
+    itemsToShow.forEach(game => {
+        htmlContent += generateCardHTML(game);
+    });
+    
+    grid.innerHTML = htmlContent;
 
-            if (typeof loadVisibleImages === 'function') {
-                try { loadVisibleImages(); } catch(e) { console.log(e); }
-            }
-        }
+    // 1. Kích hoạt nạp ảnh gốc của bro
+    if (typeof loadVisibleImages === 'function') {
+        try { loadVisibleImages(); } catch(e) { console.log(e); }
+    }
+
+    // 2. CHÈN THÊM DÒNG NÀY: Để cứ render card xong là nó tự điền sao từ Supabase vào luôn
+    if (typeof fetchAndRenderHomeRatings === 'function') {
+        fetchAndRenderHomeRatings();
+    }
+}
 
         window.addEventListener('scroll', () => {
             if (!isFiltering || isLoadingMore) return;
