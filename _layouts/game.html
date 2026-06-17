@@ -4,6 +4,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel='canonical' href='{{ site.url }}{{ page.url }}' />
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
 <script>
@@ -485,8 +486,6 @@
     Đang tải đánh giá...
   </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <div class="game-info">
   <h5 style="margin-top: 0; font-size: 20px;">Thông Tin Game</h5>
   {% if page.infor %}<div><b>Infor:</b> {{ page.infor }}</div>{% endif %}
@@ -726,7 +725,7 @@ window.onscroll = function() {
   <script>
     const SUPABASE_URL = "https://mlyczwkinxdlwxtfbklr.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seWN6d2tpbnhkbHd4dGZia2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NzcwNDgsImV4cCI6MjA5NzI1MzA0OH0.ZCh0WI63y3h3i9gf211dpETU7rZ8wvmoQbuKec3lPwE";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const pituId = "{{ page.pitu_id }}"; // Lấy ID bài viết hiện tại từ front-matter
 const starsContainer = document.querySelector('.pitu-stars');
