@@ -437,9 +437,10 @@ const backToTopBtn = document.getElementById('back-to-top');
         "namebanner": "{{ post.namebanner | escape }}",
         "engine": "{{ post.engine | escape }}",
         "genre": "{{ post.genre | escape }}",
+        "gametype": "{{ post.gametype | escape }}",
         "typegame": [{% for type in post.typegame %}"{{ type }}"{% unless forloop.last %},{% endunless %}{% endfor %}],
         "categories": [{% for cat in post.categories %}"{{ cat }}"{% unless forloop.last %},{% endunless %}{% endfor %}]
       }{% unless forloop.last %},{% endunless %}
     {% endfor %}
   ];
-</script>    
+</script>
