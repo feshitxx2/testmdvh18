@@ -11,9 +11,6 @@
     let filteredData = []; 
     let isFiltering = false;
 
-    let autoLoadObserver = null;
-    let isLoadingMore = false;
-
     function initPituEngine() {
         const grid = document.querySelector('.game-grid');
         if (!grid) return;
@@ -181,45 +178,7 @@
             `;
         }
 
-        function setupAutoLoad() {
-    if (autoLoadObserver) {
-        autoLoadObserver.disconnect();
-        autoLoadObserver = null;
-    }
-
-    const loadMoreContainer = document.getElementById('load-more-container');
-
-    if (!loadMoreContainer) return;
-
-    autoLoadObserver = new IntersectionObserver(entries => {
-        const entry = entries[0];
-
-        if (!entry.isIntersecting) return;
-        if (isLoadingMore) return;
-
-        let totalAvailable = 0;
-
-        if (isHomePage && isFiltering) {
-            totalAvailable = filteredData.length;
-        } else {
-            totalAvailable = (isFiltering ? filteredCards : allCards).length;
-        }
-
-        if (CONFIG.currentShown >= totalAvailable) return;
-
-        isLoadingMore = true;
-
-        setTimeout(() => {
-            CONFIG.currentShown += CONFIG.itemsPerLoad;
-            renderGridDisplay();
-            isLoadingMore = false;
-        }, 100);
-    }, {
-        rootMargin: '300px'
-    });
-
-    autoLoadObserver.observe(loadMoreContainer);
-}
+        // HÀM ĐIỀU KHIỂN ĐỌC HIỂN THỊ VÀ TÍNH TOÁN PHÂN TRANG CHUẨN XÁC
         function renderGridDisplay() {
             let totalAvailable = 0;
 
@@ -263,50 +222,49 @@
             }
 
             // ĐIỀU KHIỂN NÚT XEM THÊM CHÍNH XÁC THEO TỔNG SỐ LƯỢNG GAME THỰC TẾ ĐANG CÓ
-            // ĐIỀU KHIỂN PHÂN TRANG + AUTO LOAD
-if (isHomePage && !isFiltering) {
-
-    if (autoLoadObserver) {
-        autoLoadObserver.disconnect();
-    }
-
-    if (loadMoreContainer) {
-        loadMoreContainer.style.setProperty('display', 'none', 'important');
-    }
-
-    if (jekyllPaginator) {
-        jekyllPaginator.style.setProperty('display', 'block', 'important');
-    }
-
-} else {
-
-    if (jekyllPaginator) {
-        jekyllPaginator.style.setProperty('display', 'none', 'important');
-    }
-
-    if (loadMoreContainer) {
-
-        if (CONFIG.currentShown >= totalAvailable) {
-
-            loadMoreContainer.style.setProperty('display', 'none', 'important');
-
-            if (autoLoadObserver) {
-                autoLoadObserver.disconnect();
+            if (isHomePage && !isFiltering) {
+                // Trang chủ không bật lọc -> Hiện phân trang tĩnh Jekyll, ẩn cụm Xem thêm JS đi
+                if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
+                if (jekyllPaginator) jekyllPaginator.style.setProperty('display', 'block', 'important');
+            } else {
+                // Trang con HOẶC Trang chủ khi lọc -> Ẩn phân trang Jekyll, bật nút Xem thêm JS
+                if (jekyllPaginator) jekyllPaginator.style.setProperty('display', 'none', 'important');
+                
+                if (loadMoreContainer) {
+                    if (CONFIG.currentShown >= totalAvailable) {
+                        loadMoreContainer.style.setProperty('display', 'none', 'important');
+                    } else {
+                        loadMoreContainer.style.setProperty('display', 'block', 'important');
+                    }
+                }
             }
 
-        } else {
-
-            loadMoreContainer.style.setProperty('display', 'block', 'important');
-
-            setupAutoLoad();
+            if (typeof loadVisibleImages === 'function') {
+                try { loadVisibleImages(); } catch(e) {}
+            }
         }
-    }
-}
 
         // GẮN LẠI SỰ KIỆN CLICK NÚT XEM THÊM - KHÔNG BỊ TRÙNG LẶP ĐÈ CHẾT LỆNH
-        if (loadMoreBtn) {
-    loadMoreBtn.style.display = 'none';
+        if (loadMoreContainer && loadMoreBtn) {
+
+    const autoLoadObserver = new IntersectionObserver(entries => {
+
+        if (!entries[0].isIntersecting) return;
+
+        if (
+            loadMoreContainer.style.display !== 'none' &&
+            getComputedStyle(loadMoreContainer).display !== 'none'
+        ) {
+            loadMoreBtn.click();
+        }
+
+    }, {
+        rootMargin: '300px'
+    });
+
+    autoLoadObserver.observe(loadMoreContainer);
 }
+
         // HÀM XỬ LÝ LỌC
         function applyFilter() {
             const activeGametypes = Array.from(document.querySelectorAll('.filter-btn[data-type="gametype"].active')).map(b => b.dataset.val);
