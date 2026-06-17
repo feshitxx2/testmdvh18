@@ -243,23 +243,6 @@
     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiAWkPOxJVqkc0xIyKBoulfxbN9BXFI1j6jQMc9SnV2HjiESbR7VvDZM6FheAGZ86P57AnIEhX0Wy8HFw0xkd8lGV4svCOHtD9oecMQr22ItBvEVrLcJMixvPtvN31uIZZY-z0clWZD4iPkQ8A7Gpo_JkJkI9tW0dOvw9nmT1Lr1znL3xKJaLbq49s_Yw/s1600/IMG_20220521_032343.png" alt="Megumin Left">
 </div>
 </footer>
-  <script>
-  window.ALL_GAMES_DATA = [
-    {% for post in site.posts %}
-      {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
-      {
-        "id": "{{ game_id }}",
-        "url": "{{ post.url | relative_url }}",
-        "title": "{{ post.title | escape }}",
-        "namebanner": "{{ post.namebanner | escape }}",
-        "engine": "{{ post.engine | escape }}",
-        "genre": "{{ post.genre | escape }}",
-        "typegame": [{% for type in post.typegame %}"{{ type }}"{% unless forloop.last %},{% endunless %}{% endfor %}],
-        "categories": [{% for cat in post.categories %}"{{ cat }}"{% unless forloop.last %},{% endunless %}{% endfor %}]
-      }{% unless forloop.last %},{% endunless %}
-    {% endfor %}
-  ];
-</script>   
 </body>
 <button id='back-to-top'>.&#10022; &#1857;&#726; Top</button>
 </html>
