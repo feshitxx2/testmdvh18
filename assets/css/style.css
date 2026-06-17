@@ -1342,23 +1342,33 @@ img {
     gap: 15px;
 }
 
-/* Box chứa filter */
+/* Ép container sát vào, giảm gap */
+.main-content-wrapper {
+    margin-top: 20px;
+}
+
+/* Đảm bảo game-card không bị dãn quá mức */
+.game-card {
+    background: #1b0e2a; /* Màu nền card của bạn */
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+/* Sidebar filter */
 .filter-box {
     background: #12091d;
     border: 1px solid #d4487f;
     padding: 15px;
+    margin-bottom: 15px;
     border-radius: 8px;
     color: white;
 }
-
-.filter-box h3 { margin: 0 0 10px 0; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-
-/* Nút filter */
 .filter-btn {
     display: inline-block;
     padding: 4px 10px;
     margin: 3px;
-    background: #1b0e2a;
+    background: #2b1545;
     border: 1px solid #d4487f;
     border-radius: 4px;
     cursor: pointer;
@@ -1366,8 +1376,3 @@ img {
     font-size: 12px;
 }
 .filter-btn.active { background: #d4487f; }
-
-/* Nút "Xem thêm" */
-.show-more-btn {
-    background: none; border: none; color: #d4487f; cursor: pointer; font-size: 12px; margin-top: 5px;
-}
