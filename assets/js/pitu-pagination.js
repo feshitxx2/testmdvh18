@@ -2,7 +2,7 @@
     const CONFIG = {
         itemsPerLoad: 15, // Số lượng hiển thị thêm khi bấm nút hoặc cuộn xuống
         currentShown: 15, // Số lượng mặc định ban đầu
-        fakeLoadTime: 300 // Giảm thời gian load giả lập xuống cho mượt
+        fakeLoadTime: 400 // Giảm thời gian load giả lập xuống cho mượt
     };
 
     let originalHTML = ''; 
