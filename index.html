@@ -413,89 +413,82 @@ const backToTopBtn = document.getElementById('back-to-top');
     })();
 </script>
    <script>
+<script>
 document.addEventListener("DOMContentLoaded", function() {
-    const cards = document.querySelectorAll('.game-card');
-    const engineContainer = document.getElementById('engine-filters');
-    const genreContainer = document.getElementById('genre-filters');
-    const grid = document.querySelector('.game-grid'); // Để áp dụng hiệu ứng loading
+    const allCards = Array.from(document.querySelectorAll('.game-card'));
+    const loadMoreBtn = document.getElementById('load-more-btn'); // Nút này bạn thêm vào HTML nhé
+    const grid = document.querySelector('.game-grid');
     
-    // Dùng Map để lưu dữ liệu chuẩn hóa (Key: Lowercase, Value: Original Display Name)
-    const engines = new Map();
-    const genres = new Map();
+    let visibleCount = 15;
+    let filteredCards = allCards; // Ban đầu hiện tất cả
 
-    cards.forEach(card => {
-        // Thu thập Engine
-        if(card.dataset.engine) {
-            const raw = card.dataset.engine.trim();
-            engines.set(raw.toLowerCase(), raw); // Ghi đè hoặc thêm vào Map
+    // Hàm load ảnh cho 1 danh sách card cụ thể
+    function loadImages(cards) {
+        cards.forEach(card => {
+            const img = card.querySelector('.grid-pitu-img');
+            // Nếu ảnh chưa được load (src vẫn là placeholder) thì mới load
+            if (img && img.dataset.src && img.src !== img.dataset.src) {
+                img.src = img.dataset.src; 
+            }
+        });
+    }
+
+    // Hàm cập nhật hiển thị
+    function updateDisplay() {
+        // Ẩn tất cả
+        allCards.forEach(c => c.style.display = 'none');
+
+        // Lấy danh sách cần hiện
+        const toShow = filteredCards.slice(0, visibleCount);
+        
+        // Hiện và load ảnh cho danh sách này
+        toShow.forEach(c => {
+            c.style.display = 'block';
+        });
+        loadImages(toShow); // Chỉ load ảnh cho những cái hiện ra
+
+        // Nút xem thêm
+        if (loadMoreBtn) {
+            loadMoreBtn.style.display = (filteredCards.length > visibleCount) ? 'block' : 'none';
         }
-        // Thu thập Genre
-        if(card.dataset.genres) {
-            card.dataset.genres.split(',').forEach(g => {
-                const raw = g.trim();
-                if(raw) genres.set(raw.toLowerCase(), raw);
-            });
-        }
+    }
+
+    // Hàm Filter
+    function filter() {
+        const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
+        const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
+
+        filteredCards = allCards.filter(card => {
+            const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
+            const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
+            
+            const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
+            const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
+            
+            return eMatch && gMatch;
+        });
+
+        visibleCount = 15; // Reset về 15 sau khi lọc
+        updateDisplay();
+    }
+
+    // Sự kiện nút Load More
+    if (loadMoreBtn) {
+        loadMoreBtn.onclick = function() {
+            visibleCount += 15;
+            updateDisplay();
+        };
+    }
+
+    // Gán sự kiện filter (như cũ)
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.onclick = function() {
+            this.classList.toggle('active');
+            filter();
+        };
     });
 
-    // Hàm tạo nút
-    function createBtns(mapItems, container, type) {
-        // Chuyển map sang array và sort theo giá trị hiển thị
-        const sortedItems = Array.from(mapItems.values()).sort();
-        
-        sortedItems.forEach((displayVal, index) => {
-            const btn = document.createElement('button');
-            btn.innerText = displayVal;
-            btn.className = 'filter-btn';
-            if (index >= 15) btn.style.display = 'none'; 
-            
-            btn.onclick = function() {
-                this.classList.toggle('active');
-                filter();
-            };
-            
-            btn.dataset.val = displayVal.toLowerCase(); // Lưu giá trị lowercase để so sánh
-            btn.dataset.type = type;
-            container.appendChild(btn);
-        });
-        
-        // Thêm nút "..."
-        if (sortedItems.length > 15) {
-            const more = document.createElement('button');
-            more.innerText = "...";
-            more.className = 'show-more-btn';
-            more.onclick = function() { 
-                container.querySelectorAll('.filter-btn').forEach(b => b.style.display = 'inline-block'); 
-                this.style.display = 'none'; 
-            };
-            container.appendChild(more);
-        }
-    }
-
-    createBtns(engines, engineContainer, 'engine');
-    createBtns(genres, genreContainer, 'genres');
-
-    function filter() {
-        // Hiệu ứng Loading
-        grid.classList.add('loading-grid');
-
-        // Delay 200ms để hiệu ứng kịp hiển thị trước khi lọc xong
-        setTimeout(() => {
-            const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
-            const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
-
-            cards.forEach(card => {
-                const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
-                const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
-                
-                const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
-                const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
-                
-                card.style.display = (eMatch && gMatch) ? 'block' : 'none';
-            });
-
-            grid.classList.remove('loading-grid');
-        }, 200);
-    }
+    // Chạy lần đầu
+    updateDisplay();
 });
 </script>
