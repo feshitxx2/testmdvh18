@@ -1,7 +1,7 @@
 title: MDVH18
 url: "https://feshitxx2.github.io"
 markdown: kramdown
-baseurl: ""
+baseurl: "/testmdvh18"
 permalink: /:title/
 plugins:
 
