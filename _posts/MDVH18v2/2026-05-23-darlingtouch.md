@@ -15,7 +15,7 @@ platform: "APK/PC"
 dungluong: "371MB"
 phienban: "v.0.3.0"
 dev: "BisuketDream"
-genre: "2dcg, 3dcg, ai cg, mobile game, ahegao, big ass, big tits, groping, handjob, oral sex, spanking, stripping"
+genre: "2dcg, ai cg, mobile game, ahegao, big ass, big tits, groping, handjob, oral sex, spanking, stripping"
 
 linkpixelapk: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91LzdSbkF0OFRU"
 linkpixelpc: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L2t3Rk5KblNl"
