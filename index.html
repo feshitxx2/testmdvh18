@@ -412,3 +412,128 @@ const backToTopBtn = document.getElementById('back-to-top');
         });
     })();
 </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+    const cards = document.querySelectorAll('.game-card');
+    const engineContainer = document.getElementById('engine-filters');
+    const genreContainer = document.getElementById('genre-filters');
+    const grid = document.querySelector('.game-grid'); 
+    
+    // === 1. ĐỔI THÀNH SELECTOR THANH PHÂN TRANG CÓ SẴN CỦA BẠN VÀO ĐÂY ===
+    // Ví dụ nếu là id="paginator" thì đổi thành '#paginator'
+    // Nếu là class="pagination" thì đổi thành '.pagination'
+    const paginator = document.getElementById('paginator') || document.querySelector('.pagination');
+
+    const engines = new Map();
+    const genres = new Map();
+
+    // Cấu hình phân trang game
+    const GAMES_PER_PAGE = 15;
+    let visibleGamesCount = GAMES_PER_PAGE;
+    let filteredCards = []; 
+
+    cards.forEach(card => {
+        if(card.dataset.engine) {
+            const raw = card.dataset.engine.trim();
+            engines.set(raw.toLowerCase(), raw);
+        }
+        if(card.dataset.genres) {
+            card.dataset.genres.split(',').forEach(g => {
+                const raw = g.trim();
+                if(raw) genres.set(raw.toLowerCase(), raw);
+            });
+        }
+    });
+
+    function createBtns(mapItems, container, type) {
+        const sortedItems = Array.from(mapItems.values()).sort();
+        sortedItems.forEach((displayVal, index) => {
+            const btn = document.createElement('button');
+            btn.innerText = displayVal;
+            btn.className = 'filter-btn';
+            if (index >= 15) btn.style.display = 'none'; 
+            btn.onclick = function() {
+                this.classList.toggle('active');
+                visibleGamesCount = GAMES_PER_PAGE; // Reset số lượng hiển thị về 15 khi bấm filter
+                filter();
+            };
+            btn.dataset.val = displayVal.toLowerCase();
+            btn.dataset.type = type;
+            container.appendChild(btn);
+        });
+
+        if (sortedItems.length > 15) {
+            const more = document.createElement('button');
+            more.innerText = "...";
+            more.className = 'show-more-btn';
+            more.onclick = function() { 
+                container.querySelectorAll('.filter-btn').forEach(b => b.style.display = 'inline-block'); 
+                this.style.display = 'none'; 
+            };
+            container.appendChild(more);
+        }
+    }
+
+    createBtns(engines, engineContainer, 'engine');
+    createBtns(genres, genreContainer, 'genres');
+
+    // Hàm quản lý việc ẩn/hiển thị game
+    function renderGames() {
+        // Ẩn tất cả các game trước
+        cards.forEach(card => card.style.display = 'none');
+
+        // Chỉ lấy và hiển thị số lượng game được phép (visibleGamesCount)
+        const gamesToShow = filteredCards.slice(0, visibleGamesCount);
+        gamesToShow.forEach(card => card.style.display = 'block');
+
+        // Điều khiển thanh phân trang có sẵn của bạn
+        if (paginator) {
+            if (filteredCards.length > visibleGamesCount) {
+                paginator.style.display = 'block'; // Hiện lại thanh phân trang nếu còn game để xem
+            } else {
+                paginator.style.display = 'none';  // Ẩn đi nếu đã hiện hết sạch game
+            }
+        }
+    }
+
+    // Gắn sự kiện kích hoạt tải thêm game vào thanh phân trang của bạn
+    if (paginator) {
+        paginator.onclick = function(e) {
+            e.preventDefault();
+            visibleGamesCount += GAMES_PER_PAGE; // Tăng giới hạn lên thêm 15 game nữa
+            renderGames();
+        };
+    }
+
+    function filter() {
+        // Ẩn ngay lập tức thanh phân trang khi vừa kích vào filter
+        if (paginator) paginator.style.display = 'none';
+        
+        grid.classList.add('loading-grid');
+        
+        setTimeout(() => {
+            const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
+            const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
+            
+            // Lọc danh sách game khớp với bộ lọc
+            filteredCards = Array.from(cards).filter(card => {
+                const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
+                const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
+                
+                const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
+                const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
+                
+                return eMatch && gMatch;
+            });
+
+            // Chạy hàm hiển thị game và tính toán ẩn/hiện bộ phân trang
+            renderGames();
+
+            grid.classList.remove('loading-grid');
+        }, 200);
+    }
+
+    // Chạy kích hoạt lần đầu
+    filter();
+});
+</script>
