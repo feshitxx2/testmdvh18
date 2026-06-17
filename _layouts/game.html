@@ -720,21 +720,33 @@ window.onscroll = function() {
     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiAWkPOxJVqkc0xIyKBoulfxbN9BXFI1j6jQMc9SnV2HjiESbR7VvDZM6FheAGZ86P57AnIEhX0Wy8HFw0xkd8lGV4svCOHtD9oecMQr22ItBvEVrLcJMixvPtvN31uIZZY-z0clWZD4iPkQ8A7Gpo_JkJkI9tW0dOvw9nmT1Lr1znL3xKJaLbq49s_Yw/s1600/IMG_20220521_032343.png" alt="Megumin Left">
 </div>
   <script>
-    const SUPABASE_URL = "https://mlyczwkinxdlwxtfbklr.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seWN6d2tpbnhkbHd4dGZia2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NzcwNDgsImV4cCI6MjA5NzI1MzA0OH0.ZCh0WI63y3h3i9gf211dpETU7rZ8wvmoQbuKec3lPwE";
+   // Khai báo cấu hình Supabase (Bro nhớ thay thông tin chuẩn của bro vào đây)
+const SUPABASE_URL = "https://mlyczwkinxdlwxtfbklr.supabase.co"; 
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1seWN6d2tpbnhkbHd4dGZia2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NzcwNDgsImV4cCI6MjA5NzI1MzA0OH0.ZCh0WI63y3h3i9gf211dpETU7rZ8wvmoQbuKec3lPwE"; 
 const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const pituId = "{{ page.pitu_id }}"; // Lấy ID bài viết hiện tại từ front-matter
+const pituId = "{{ page.pitu_id }}"; // Lấy ID bài viết từ front-matter của Jekyll
 const starsContainer = document.querySelector('.pitu-stars');
-const stars = document.querySelectorAll('.pitu-stars .fa-star');
+const stars = document.querySelectorAll('.pitu-stars span');
 const ratingInfo = document.querySelector('.rating-info');
 
 let currentTotalStars = 0;
 let currentTotalVotes = 0;
-let hasVoted = localStorage.getItem('voted_' + pituId); // Chống spam vote bằng cách lưu cookie trình duyệt
+let hasVoted = localStorage.getItem('voted_' + pituId); // Chống spam vote bằng LocalStorage
 
+// Hàm thắp sáng số lượng sao dựa trên điểm số
+function lightUpStars(num) {
+    stars.forEach((star, idx) => {
+        if (idx < num) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+}
+
+// Hàm tải điểm số hiện tại từ Supabase về
 async function loadRating() {
-    // Lấy dữ liệu từ Supabase về
     let { data, error } = await supabase.from('game_ratings').select('*').eq('pitu_id', pituId).single();
     
     if (data) {
@@ -748,33 +760,25 @@ async function loadRating() {
     }
 }
 
-function lightUpStars(num) {
-    stars.forEach((star, idx) => {
-        if (idx < num) {
-            star.classList.remove('fa-regular');
-            star.classList.add('fa-solid');
-        } else {
-            star.classList.remove('fa-solid');
-            star.classList.add('fa-regular');
-        }
-    });
-}
-
-// Xử lý sự kiện di chuột hover và click chọn sao
+// Bắt sự kiện hover chuột qua các ngôi sao
 stars.forEach(star => {
     star.addEventListener('mouseover', function() {
         if (hasVoted) return;
         const val = parseInt(this.dataset.star);
-        stars.forEach((s, i) => i < val ? s.classList.add('fa-solid') : s.classList.remove('fa-solid'));
+        stars.forEach((s, i) => i < val ? s.classList.add('active') : s.classList.remove('active'));
     });
 });
 
-starsContainer.addEventListener('mouseleave', () => {
-    if (hasVoted) return;
-    const avg = currentTotalVotes > 0 ? Math.round(currentTotalStars / currentTotalVotes) : 0;
-    lightUpStars(avg);
-});
+// Bắt sự kiện khi chuột rời khỏi cụm sao (trả về điểm số thực tế)
+if (starsContainer) {
+    starsContainer.addEventListener('mouseleave', () => {
+        if (hasVoted) return;
+        const avg = currentTotalVotes > 0 ? Math.round(currentTotalStars / currentTotalVotes) : 0;
+        lightUpStars(avg);
+    });
+}
 
+// Bắt sự kiện click để vote điểm
 stars.forEach(star => {
     star.addEventListener('click', async function() {
         if (hasVoted) {
@@ -785,17 +789,19 @@ stars.forEach(star => {
         const score = parseInt(this.dataset.star);
         ratingInfo.innerText = "Đang gửi đánh giá...";
 
-        // Gửi lệnh RPC tăng biến hoặc kiểm tra xem dòng đó đã tồn tại chưa
+        // Kiểm tra xem game này đã từng có ai vote trên Supabase chưa
         let { data: existing } = await supabase.from('game_ratings').select('*').eq('pitu_id', pituId).single();
 
         let result;
         if (existing) {
+            // Nếu có rồi thì cộng dồn điểm và lượt vote vào
             result = await supabase.from('game_ratings').update({
                 total_stars: existing.total_stars + score,
                 total_votes: existing.total_votes + 1,
                 updated_at: new Date()
             }).eq('pitu_id', pituId);
         } else {
+            // Nếu chưa có thì chèn dòng mới cho game này
             result = await supabase.from('game_ratings').insert([
                 { pitu_id: pituId, total_stars: score, total_votes: 1 }
             ]);
@@ -807,11 +813,13 @@ stars.forEach(star => {
             await loadRating();
             alert("Cảm ơn bro đã vote!");
         } else {
+            console.error(result.error);
             ratingInfo.innerText = "Lỗi hệ thống, không thể vote.";
         }
     });
 });
 
+// Kích hoạt chạy tải dữ liệu ngay khi mở bài viết lên
 loadRating();
   </script>
 </html>
