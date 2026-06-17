@@ -10,6 +10,7 @@
     let isLoadingMore = false;
 
     function initPituEngine() {
+        // Kiểm tra kho tổng database
         if (typeof PITU_DATABASE === "undefined") {
             setTimeout(initPituEngine, 200);
             return;
@@ -24,7 +25,7 @@
             return;
         }
 
-        // Lưu giữ HTML gốc của Jekyll
+        // Lưu giữ nguyên bản HTML gốc của Jekyll
         originalHTML = grid.innerHTML;
 
         const engineContainer = document.getElementById('engine-filters');
@@ -42,7 +43,7 @@
             return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
         }
 
-        // Bước 1: Quét tag từ trang hiện tại trước
+        // Bước 1: Quét tag và engine có sẵn trên trang hiện tại
         items.forEach(item => {
             if (item.dataset.engine) {
                 const raw = item.dataset.engine.trim();
@@ -56,14 +57,14 @@
             }
         });
 
-        // Bước 2: Quét tag từ PITU_DATABASE để lấy đủ danh mục toàn trang web
+        // Bước 2: Quét tag và engine từ PITU_DATABASE để gom đủ danh mục toàn trang
         PITU_DATABASE.forEach(game => {
             const gameEngine = game.engine || '';
             const gameGenre = game.genre || '';
 
             if (gameEngine) {
                 const raw = gameEngine.trim();
-                if (raw) engines.set(raw.toLowerCase(), raw);
+                if (raw) engines.set(raw.toLowerCase(), formatTagDisplay(raw));
             }
             if (gameGenre) {
                 gameGenre.split(',').forEach(g => {
@@ -115,15 +116,20 @@
         createFilterBtns(engines, engineContainer, 'engine');
         createFilterBtns(genres, genreContainer, 'genres');
 
-        // Hàm sinh cây cấu trúc HTML chuẩn khớp 100% với file MD và hệ thống của bạn
+        // Hàm sinh cây cấu trúc HTML chuẩn khớp 100% với hệ thống của bạn
         function generateCardHTML(game) {
             const gTypegame = game.typegame || [];
             const gCategories = game.categories || [];
             const gUrl = game.url || '#';
+            
+            // Tìm ID game: lấy từ pitu_id, hoặc cắt từ đuôi URL để đồng bộ
             const gId = game.pitu_id || (game.url ? game.url.split('/').pop().replace('.html', '') : '');
             const gTitle = game.namebanner || game.title || '';
+            
+            // Xử lý nạp link ảnh thực tế thẳng vào src để chống lỗi lazy load rỗng
+            const imgUrl = game.banner || game.image || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC';
 
-            // Sinh tag nền tảng PC/APK
+            // Sinh các tag nền tảng như PC, APK
             let typeTagsHTML = '';
             if (Array.isArray(gTypegame)) {
                 gTypegame.forEach(type => {
@@ -132,7 +138,7 @@
                 });
             }
 
-            // Sinh badge góc ảnh
+            // Sinh badge góc ảnh danh mục đầu tiên
             let badgeHTML = '';
             if (gCategories && gCategories.length > 0) {
                 const badgeText = gCategories[0].replace(/-/g, ' ');
@@ -146,10 +152,10 @@
                 <div class="game-card" data-engine="${game.engine || ''}" data-genres="${game.genre || ''}">
                     <a href="${gameUrl}">
                         <div class="card-thumb">
-                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
+                            <img src="${imgUrl}" 
                                  class="grid-pitu-img" 
                                  data-pitu="${gId}" 
-                                 alt="${game.title || ''}">
+                                 alt="${gTitle}">
                             <div class="card-type-tags">${typeTagsHTML}</div>
                             <i class="fa-solid fa-angles-down download-icon-fa"></i> 
                             ${badgeHTML}
@@ -162,36 +168,36 @@
             `;
         }
 
+        // Đổ dữ liệu ra màn hình lưới game grid
         function renderFilteredGrid() {
             const itemsToShow = filteredData.slice(0, CONFIG.currentShown);
-            let htmlContent = '';
             
+            if (itemsToShow.length === 0) {
+                grid.innerHTML = '<div class="no-results" style="width:100%; text-align:center; padding: 40px; font-weight:bold; color:#888;">Không tìm thấy game phù hợp bộ lọc!</div>';
+                return;
+            }
+
+            let htmlContent = '';
             itemsToShow.forEach(game => {
                 htmlContent += generateCardHTML(game);
             });
             
             grid.innerHTML = htmlContent;
-            
-            // Kích hoạt hàm Lazy Load nạp ảnh thực tế từ PITU_DATABASE cho các thẻ mới dựng
+
+            // Chạy kích hoạt lazy load gốc nếu có để bổ trợ
             if (typeof loadVisibleImages === 'function') {
-                loadVisibleImages();
-            } else {
-                // Phương án dự phòng nếu hàm gốc nằm ở file khác chưa chạy
-                itemsToShow.forEach(game => {
-                    const gId = game.pitu_id || (game.url ? game.url.split('/').pop().replace('.html', '') : '');
-                    const img = grid.querySelector(`.grid-pitu-img[data-pitu="${gId}"]`);
-                    if (img && game.banner) img.src = game.banner;
-                });
+                try { loadVisibleImages(); } catch(e) { console.log(e); }
             }
         }
 
-        // Bắt sự kiện cuộn trang làm tăng số lượng game được hiển thị lên thêm 15 bài
+        // Bắt sự kiện cuộn chuột để tự động bung thêm 15 game tiếp theo
         window.addEventListener('scroll', () => {
             if (!isFiltering || isLoadingMore) return;
 
             if (CONFIG.currentShown < filteredData.length) {
                 const triggerPoint = window.innerHeight + window.scrollY;
                 
+                // Khi cuộn gần đến đáy trang dưới 400px thì hiện thêm game mới
                 if (triggerPoint >= document.body.offsetHeight - 400) {
                     isLoadingMore = true;
                     setTimeout(() => {
@@ -223,6 +229,8 @@
             filteredData = PITU_DATABASE.filter(game => {
                 const cardEngine = (game.engine || '').toLowerCase().trim();
                 const gameGenreRaw = game.genre || '';
+                
+                // Cắt mảng tag, bóc tách khoảng cách và đưa về chữ thường để so khớp
                 const cardGenres = gameGenreRaw ? gameGenreRaw.split(',').map(s => s.trim().toLowerCase()) : [];
                 
                 const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
