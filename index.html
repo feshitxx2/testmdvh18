@@ -418,4 +418,20 @@ const backToTopBtn = document.getElementById('back-to-top');
         });
     })();
 </script>
-    
+<script>
+  window.ALL_GAMES_DATA = [
+    {% for post in site.posts %}
+      {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
+      {
+        "id": "{{ game_id }}",
+        "url": "{{ post.url | relative_url }}",
+        "title": "{{ post.title | escape }}",
+        "namebanner": "{{ post.namebanner | escape }}",
+        "engine": "{{ post.engine | escape }}",
+        "genre": "{{ post.genre | escape }}",
+        "typegame": [{% for type in post.typegame %}"{{ type }}"{% unless forloop.last %},{% endunless %}{% endfor %}],
+        "categories": [{% for cat in post.categories %}"{{ cat }}"{% unless forloop.last %},{% endunless %}{% endfor %}]
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ];
+</script>    
