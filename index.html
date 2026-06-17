@@ -143,19 +143,13 @@ layout: default
     
 {% assign posts = site.posts | limit: 5 %}
 
-<div class="main-content-wrapper" style="display: flex; gap: 20px; align-items: flex-start; max-width: 1200px; margin: 0 auto;">
-
-  <aside id="genre-sidebar" style="width: 250px; flex-shrink: 0; background: #12091d; border: 1px solid #d4487f; padding: 15px; color: white; border-radius: 8px;">
-    <h3 style="margin-top: 0;">BỘ LỌC GAME</h3>
-    <div id="filter-container"></div>
-  </aside>
-
-  <div class="game-grid" style="flex: 1;">
+<div class="main-content-wrapper">
+  <div class="game-grid">
     {% assign sorted_posts = paginator.posts | sort: 'date' | reverse %}
     {% for post in sorted_posts %}
-      {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
       
-      <div class="game-card" data-genres="{{ post.genre | downcase }}">
+      {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
+      <div class="game-card">
         <a href="{{ post.url | relative_url }}">
           <div class="card-thumb">
             <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
@@ -175,15 +169,6 @@ layout: default
               <div class="card-badge">{{ post.categories | first | replace: "-", " " }}</div>
             {% endif %}
           </div>
-
-          <div class="card-info">
-            <h3>{{ post.namebanner }}</h3>
-          </div>
-        </a>
-      </div>
-    {% endfor %}
-  </div>
-</div>
 
           <div class="card-info">
             <h3>{{ post.namebanner }}</h3>
@@ -435,43 +420,4 @@ const backToTopBtn = document.getElementById('back-to-top');
     function closeDonatePopup() {
         document.getElementById('donate-popup').style.display = 'none';
     }
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const cards = document.querySelectorAll('.game-card');
-    const container = document.getElementById('filter-container');
-    const genreSet = new Set();
-
-    // Thu thập toàn bộ tag
-    cards.forEach(card => {
-        const genres = card.getAttribute('data-genres');
-        if (genres) {
-            genres.split(',').forEach(g => genreSet.add(g.trim()));
-        }
-    });
-
-    // Tạo nút
-    Array.from(genreSet).sort().forEach(g => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.innerText = g;
-        btn.onclick = function() {
-            this.classList.toggle('active');
-            filterGames();
-        };
-        container.appendChild(btn);
-    });
-
-    // Lọc game
-    function filterGames() {
-        const activeFilters = Array.from(document.querySelectorAll('.filter-btn.active')).map(b => b.innerText);
-        
-        cards.forEach(card => {
-            const cardGenres = card.getAttribute('data-genres').split(',').map(s => s.trim());
-            // Logic AND: Phải có đủ tất cả tag đang chọn
-            const isMatch = activeFilters.every(f => cardGenres.includes(f));
-            card.style.display = isMatch ? 'block' : 'none';
-        });
-    }
-});
 </script>
