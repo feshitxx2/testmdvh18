@@ -15,7 +15,7 @@ platform: "APK/PC"
 dungluong: "1.6GB"
 phienban: "v0.3"
 dev: "Chinzu"
-genre: "3D, Adult, Animation, Erotic, First-Person, NSFW, Ren'Py, Visual Novel, corruption, milf"
+genre: "3Dcg, Adult, Animation, Erotic, First-Person, NSFW, Ren'Py, Visual Novel, corruption, milf"
 
 linkpixelapk: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L1piM0ZRb1hM"
 linkpixelpc: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L0tWM2tSYjQ5"
