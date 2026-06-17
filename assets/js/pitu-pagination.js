@@ -13,29 +13,33 @@
             return;
         }
 
-        // Lấy danh sách thẻ game
-        const items = document.querySelectorAll('.pitu-item');
+        // ĐÃ SỬA: Lấy chuẩn class từ file HTML (.game-card)
+        const items = document.querySelectorAll('.game-card');
         
-        // CƠ CHẾ SỬA LỖI: Nếu HTML chưa render xong thẻ game, đợi thêm 100ms rồi thử lại
+        // Nếu HTML chưa kịp render xong thẻ game, đợi thêm 100ms rồi thử lại
         if (items.length === 0) {
             setTimeout(initPituEngine, 100);
             return;
         }
 
-        const grid = document.querySelector('.pitu-grid') || document.querySelector('.game-grid') || document.querySelector('.grid'); 
+        // ĐÃ SỬA: Lấy chuẩn class khung chứa game (.game-grid)
+        const grid = document.querySelector('.game-grid'); 
+        
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
+        
+        // Paginator có sẵn của bạn
         const btn = document.getElementById('btn-load-more');
         const container = document.getElementById('load-more-container');
 
         const engines = new Map();
         const genres = new Map();
 
-        // Thu thập dữ liệu làm bộ lọc từ data-attributes
+        // Thu thập dữ liệu làm bộ lọc từ data-attributes của .game-card
         items.forEach(item => {
             if(item.dataset.engine) {
                 const raw = item.dataset.engine.trim();
-                engines.set(raw.toLowerCase(), raw);
+                if(raw) engines.set(raw.toLowerCase(), raw);
             }
             if(item.dataset.genres) {
                 item.dataset.genres.split(',').forEach(g => {
@@ -47,8 +51,8 @@
 
         // Hàm tạo các nút bấm bộ lọc
         function createBtns(mapItems, containerFilter, type) {
-            if (!containerFilter) return; // Tránh lỗi nếu thiếu div container trong HTML
-            containerFilter.innerHTML = ''; // Xóa sạch dữ liệu cũ trước khi chèn để tránh trùng lặp
+            if (!containerFilter) return; 
+            containerFilter.innerHTML = ''; 
             
             const sortedItems = Array.from(mapItems.values()).sort();
             sortedItems.forEach((displayVal, index) => {
@@ -109,7 +113,8 @@
 
             const itemsToShow = filteredItems.slice(0, CONFIG.currentShown);
             itemsToShow.forEach(item => {
-                item.style.display = 'flex'; 
+                // ĐÃ SỬA: Chuyển thành 'block' cho khớp với cấu trúc thẻ a bao quanh card trong HTML của bạn
+                item.style.display = 'block'; 
                 item.classList.add('is-visible');
             });
 
