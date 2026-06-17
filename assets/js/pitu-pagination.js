@@ -1,7 +1,7 @@
 (function() {
     const CONFIG = {
-        itemsPerLoad: 15, // Mỗi lần kéo xuống tải thêm 15 game
-        currentShown: 15  // Lượng game hiển thị ban đầu khi bấm filter
+        itemsPerLoad: 15, // Số lượng game hiển thị thêm mỗi lần cuộn xuống
+        currentShown: 15  // Lượng game hiển thị ban đầu khi chọn bộ lọc
     };
 
     let originalHTML = ''; 
@@ -10,8 +10,8 @@
     let isLoadingMore = false;
 
     function initPituEngine() {
-        // Kiểm tra kho tổng database
-        if (typeof PITU_DATABASE === "undefined") {
+        // Kiểm tra kho tổng dữ liệu bài viết vừa tạo từ Jekyll
+        if (typeof ALL_GAMES_DATA === "undefined") {
             setTimeout(initPituEngine, 200);
             return;
         }
@@ -25,7 +25,7 @@
             return;
         }
 
-        // Lưu giữ nguyên bản HTML gốc của Jekyll
+        // Lưu giữ nguyên bản cấu trúc trang chủ gốc của Jekyll
         originalHTML = grid.innerHTML;
 
         const engineContainer = document.getElementById('engine-filters');
@@ -35,7 +35,7 @@
         const engines = new Map();
         const genres = new Map();
 
-        // Định dạng chuẩn để gộp tag trùng (3dcg, 3DCG -> 3DCG)
+        // Gộp tag trùng lặp và định dạng chữ viết hoa đẹp (3dcg -> 3DCG)
         function formatTagDisplay(tag) {
             const trimmed = tag.trim();
             if (trimmed.toLowerCase() === '3dcg') return '3DCG';
@@ -43,38 +43,21 @@
             return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
         }
 
-        // Bước 1: Quét tag và engine có sẵn trên trang hiện tại
-        items.forEach(item => {
-            if (item.dataset.engine) {
-                const raw = item.dataset.engine.trim();
+        // Quét toàn bộ tag/engine từ mảng ALL_GAMES_DATA tổng để hiển thị đủ danh mục ra Sidebar
+        ALL_GAMES_DATA.forEach(game => {
+            if (game.engine) {
+                const raw = game.engine.trim();
                 if (raw) engines.set(raw.toLowerCase(), formatTagDisplay(raw));
             }
-            if (item.dataset.genres) {
-                item.dataset.genres.split(',').forEach(g => {
+            if (game.genre) {
+                game.genre.split(',').forEach(g => {
                     const raw = g.trim();
                     if (raw) genres.set(raw.toLowerCase(), formatTagDisplay(raw));
                 });
             }
         });
 
-        // Bước 2: Quét tag và engine từ PITU_DATABASE để gom đủ danh mục toàn trang
-        PITU_DATABASE.forEach(game => {
-            const gameEngine = game.engine || '';
-            const gameGenre = game.genre || '';
-
-            if (gameEngine) {
-                const raw = gameEngine.trim();
-                if (raw) engines.set(raw.toLowerCase(), formatTagDisplay(raw));
-            }
-            if (gameGenre) {
-                gameGenre.split(',').forEach(g => {
-                    const raw = g.trim();
-                    if (raw) genres.set(raw.toLowerCase(), formatTagDisplay(raw));
-                });
-            }
-        });
-
-        // Hàm tạo nút bộ lọc ở Sidebar
+        // Hàm dựng nút bộ lọc ở Sidebar
         function createFilterBtns(mapItems, containerFilter, type) {
             if (!containerFilter) return;
             containerFilter.innerHTML = '';
@@ -91,7 +74,7 @@
                 btnFilter.onclick = function(e) {
                     e.preventDefault();
                     this.classList.toggle('active');
-                    CONFIG.currentShown = CONFIG.itemsPerLoad; // Reset số lượng về 15 khi đổi tag
+                    CONFIG.currentShown = CONFIG.itemsPerLoad; // Reset về 15 game khi đổi tag
                     filter();
                 };
                 btnFilter.dataset.val = keyVal;
@@ -116,20 +99,15 @@
         createFilterBtns(engines, engineContainer, 'engine');
         createFilterBtns(genres, genreContainer, 'genres');
 
-        // Hàm sinh cây cấu trúc HTML chuẩn khớp 100% với hệ thống của bạn
+        // Hàm dựng cấu trúc HTML card game đồng bộ hoàn toàn với mẫu thiết kế của bạn
         function generateCardHTML(game) {
             const gTypegame = game.typegame || [];
             const gCategories = game.categories || [];
             const gUrl = game.url || '#';
-            
-            // Tìm ID game: lấy từ pitu_id, hoặc cắt từ đuôi URL để đồng bộ
-            const gId = game.pitu_id || (game.url ? game.url.split('/').pop().replace('.html', '') : '');
+            const gId = game.id || '';
             const gTitle = game.namebanner || game.title || '';
-            
-            // Xử lý nạp link ảnh thực tế thẳng vào src để chống lỗi lazy load rỗng
-            const imgUrl = game.banner || game.image || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC';
 
-            // Sinh các tag nền tảng như PC, APK
+            // Tạo chuỗi HTML cho tag hệ máy (PC, APK)
             let typeTagsHTML = '';
             if (Array.isArray(gTypegame)) {
                 gTypegame.forEach(type => {
@@ -138,24 +116,21 @@
                 });
             }
 
-            // Sinh badge góc ảnh danh mục đầu tiên
+            // Tạo chuỗi HTML cho Badge góc ảnh
             let badgeHTML = '';
             if (gCategories && gCategories.length > 0) {
                 const badgeText = gCategories[0].replace(/-/g, ' ');
                 badgeHTML = `<div class="card-badge">${badgeText}</div>`;
             }
 
-            const baseUrl = window.location.origin + (window.JEKYLL_BASEURL || '');
-            const gameUrl = gUrl.startsWith('http') ? gUrl : baseUrl + gUrl;
-
             return `
                 <div class="game-card" data-engine="${game.engine || ''}" data-genres="${game.genre || ''}">
-                    <a href="${gameUrl}">
+                    <a href="${gUrl}">
                         <div class="card-thumb">
-                            <img src="${imgUrl}" 
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
                                  class="grid-pitu-img" 
                                  data-pitu="${gId}" 
-                                 alt="${gTitle}">
+                                 alt="${game.title || ''}">
                             <div class="card-type-tags">${typeTagsHTML}</div>
                             <i class="fa-solid fa-angles-down download-icon-fa"></i> 
                             ${badgeHTML}
@@ -168,12 +143,12 @@
             `;
         }
 
-        // Đổ dữ liệu ra màn hình lưới game grid
+        // Đổ danh sách kết quả lọc ra ngoài màn hình lưới game
         function renderFilteredGrid() {
             const itemsToShow = filteredData.slice(0, CONFIG.currentShown);
             
             if (itemsToShow.length === 0) {
-                grid.innerHTML = '<div class="no-results" style="width:100%; text-align:center; padding: 40px; font-weight:bold; color:#888;">Không tìm thấy game phù hợp bộ lọc!</div>';
+                grid.innerHTML = '<div class="no-results" style="width:100%; text-align:center; padding: 40px; font-weight:bold; color:#888;">Không tìm thấy game tương thích bộ lọc!</div>';
                 return;
             }
 
@@ -184,20 +159,19 @@
             
             grid.innerHTML = htmlContent;
 
-            // Chạy kích hoạt lazy load gốc nếu có để bổ trợ
+            // Gọi hàm xử lý ảnh gốc của bạn để nạp banner thực tế thông qua thuộc tính data-pitu
             if (typeof loadVisibleImages === 'function') {
                 try { loadVisibleImages(); } catch(e) { console.log(e); }
             }
         }
 
-        // Bắt sự kiện cuộn chuột để tự động bung thêm 15 game tiếp theo
+        // Lắng nghe sự kiện cuộn trang để kích hoạt cuộn vô hạn (Infinite Scroll)
         window.addEventListener('scroll', () => {
             if (!isFiltering || isLoadingMore) return;
 
             if (CONFIG.currentShown < filteredData.length) {
                 const triggerPoint = window.innerHeight + window.scrollY;
                 
-                // Khi cuộn gần đến đáy trang dưới 400px thì hiện thêm game mới
                 if (triggerPoint >= document.body.offsetHeight - 400) {
                     isLoadingMore = true;
                     setTimeout(() => {
@@ -209,7 +183,7 @@
             }
         });
 
-        // Xử lý bộ lọc chính xác bằng cách ép toàn bộ chuỗi về chữ thường (lowercase)
+        // Xử lý bộ lọc so khớp chuẩn hóa dạng chữ thường (lowercase)
         function filter() {
             const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
             const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
@@ -220,17 +194,17 @@
                 isFiltering = false;
                 grid.innerHTML = originalHTML;
                 if (jekyllPaginator) jekyllPaginator.style.display = 'block';
+                // Chạy lại lazy load ảnh gốc cho trạng thái mặc định
+                if (typeof loadVisibleImages === 'function') loadVisibleImages();
                 return;
             }
 
             isFiltering = true;
             if (jekyllPaginator) jekyllPaginator.style.display = 'none';
 
-            filteredData = PITU_DATABASE.filter(game => {
+            filteredData = ALL_GAMES_DATA.filter(game => {
                 const cardEngine = (game.engine || '').toLowerCase().trim();
                 const gameGenreRaw = game.genre || '';
-                
-                // Cắt mảng tag, bóc tách khoảng cách và đưa về chữ thường để so khớp
                 const cardGenres = gameGenreRaw ? gameGenreRaw.split(',').map(s => s.trim().toLowerCase()) : [];
                 
                 const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
