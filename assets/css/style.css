@@ -1404,3 +1404,32 @@ img {
 .game-card {
     animation: fadeInUp 0.4s ease-out forwards;
 }
+
+/* TỐI ƯU GIAO DIỆN TRÊN ĐIỆN THOẠI & MÁY TÍNH BẢNG */
+@media screen and (max-width: 992px) {
+    .sidebar-right {
+        width: 100% !important;
+        position: static !important;
+        padding: 0 10px !important;
+    }
+
+
+    .filter-box {
+        background: #f9f9f9; 
+        padding: 15px !important;
+        border-radius: 8px !important;
+        margin-bottom: 15px !important;
+    }
+
+    .filter-btn, .show-more-btn {
+        padding: 8px 14px !important;
+        margin: 4px !important;
+        font-size: 13px !important;
+        display: inline-block !important;
+    }
+
+    #pitu-tag-search {
+        padding: 10px 12px !important; /
+        font-size: 15px !important;
+    }
+}
