@@ -1342,20 +1342,19 @@ img {
     gap: 15px;
 }
 
-/* Ép container sát vào, giảm gap */
 .main-content-wrapper {
     margin-top: 20px;
+    display: flex;
+    gap: 5px;
 }
 
-/* Đảm bảo game-card không bị dãn quá mức */
 .game-card {
-    background: #1b0e2a; /* Màu nền card của bạn */
+    background: #1b0e2a;
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.2s;
 }
 
-/* Sidebar filter */
 .filter-box {
     background: #12091d;
     border: 1px solid #d4487f;
@@ -1376,11 +1375,10 @@ img {
     font-size: 12px;
 }
 .filter-btn.active { background: #d4487f; }
-/* Hiệu ứng loading */
 .game-grid {
     transition: opacity 0.3s ease;
 }
 .loading-grid {
     opacity: 0.4;
-    pointer-events: none; /* Ngăn người dùng click khi đang load */
+    pointer-events: none;
 }
