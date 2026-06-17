@@ -331,8 +331,25 @@
                 grid.classList.remove('pitu-loading');
             }, CONFIG.fakeLoadTime);
         }
-
-        // CHẠY HIỂN THỊ BAN ĐẦU TRANG
+        const toggleFilterBtn = document.getElementById('pitu-toggle-filter');
+        const filterContent = document.getElementById('pitu-filter-content');
+        
+        if (toggleFilterBtn && filterContent) {
+            toggleFilterBtn.onclick = function(e) {
+                e.preventDefault();
+                
+                // Chỉ kích hoạt chức năng ẩn/hiện khi độ rộng màn hình nhỏ hơn hoặc bằng 992px
+                if (window.innerWidth <= 992) {
+                    filterContent.classList.toggle('show');
+                    
+                    if (filterContent.classList.contains('show')) {
+                        this.style.background = '#d4487f';
+                    } else {
+                        this.style.background = '#2b1545';
+                    }
+                }
+            };
+        }
         renderGridDisplay();
     }
 
