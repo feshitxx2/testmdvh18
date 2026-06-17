@@ -12,20 +12,21 @@
         const grid = document.querySelector('.game-grid');
         if (!grid) return;
 
-        // Lấy toàn bộ card game đang có mặt trên HTML (đã được Jekyll render sẵn)
+        // Lấy toàn bộ card game đang có mặt trên giao diện HTML
         allCards = Array.from(grid.querySelectorAll('.game-card'));
         if (allCards.length === 0) {
             setTimeout(initPituEngine, 100);
             return;
         }
 
-        // Đảm bảo ban đầu toàn bộ card được nạp vào mảng filter
+        // Ban đầu gán mảng filter bằng toàn bộ card hiện có
         filteredCards = [...allCards];
 
         const gametypeContainer = document.getElementById('gametype-filters');
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
         const loadMoreBtn = document.getElementById('btn-load-more');
+        const loadMoreContainer = document.getElementById('load-more-container');
         const tagSearchInput = document.getElementById('pitu-tag-search');
 
         const gametypes = new Map();
@@ -40,22 +41,40 @@
             return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
         }
 
-        // Tự động gom dữ liệu từ các thuộc tính data- của card để sinh nút bộ lọc tự động
-        allCards.forEach(card => {
-            const gt = card.dataset.gametype;
-            const eg = card.dataset.engine;
-            const gr = card.dataset.genres;
+        // BƯỚC 1: QUÉT NGUỒN DỮ LIỆU ĐỂ TẠO NÚT BỘ LỌC
+        // Nếu có biến ALL_GAMES_DATA toàn cục (Trang chủ), ưu tiên quét nó để không sót nút
+        if (typeof ALL_GAMES_DATA !== "undefined" && Array.isArray(ALL_GAMES_DATA)) {
+            ALL_GAMES_DATA.forEach(game => {
+                const gt = game.gametype;
+                const eg = game.engine;
+                const gr = game.genre;
 
-            if (gt && gt.trim()) gametypes.set(gt.trim().toLowerCase(), formatTagDisplay(gt));
-            if (eg && eg.trim()) engines.set(eg.trim().toLowerCase(), formatTagDisplay(eg));
-            if (gr && gr.trim()) {
-                gr.split(',').forEach(g => {
-                    if (g.trim()) genres.set(g.trim().toLowerCase(), formatTagDisplay(g));
-                });
-            }
-        });
+                if (gt && gt.trim()) gametypes.set(gt.trim().toLowerCase(), formatTagDisplay(gt));
+                if (eg && eg.trim()) engines.set(eg.trim().toLowerCase(), formatTagDisplay(eg));
+                if (gr && gr.trim()) {
+                    gr.split(',').forEach(g => {
+                        if (g.trim()) genres.set(g.trim().toLowerCase(), formatTagDisplay(g));
+                    });
+                }
+            });
+        } else {
+            // Nếu ở trang Pages (không có mảng tĩnh), quét trực tiếp từ HTML các card đang hiển thị
+            allCards.forEach(card => {
+                const gt = card.dataset.gametype;
+                const eg = card.dataset.engine;
+                const gr = card.dataset.genres;
 
-        // Hàm tạo các nút bấm Filter ở Sidebar
+                if (gt && gt.trim()) gametypes.set(gt.trim().toLowerCase(), formatTagDisplay(gt));
+                if (eg && eg.trim()) engines.set(eg.trim().toLowerCase(), formatTagDisplay(eg));
+                if (gr && gr.trim()) {
+                    gr.split(',').forEach(g => {
+                        if (g.trim()) genres.set(g.trim().toLowerCase(), formatTagDisplay(g));
+                    });
+                }
+            });
+        }
+
+        // BƯỚC 2: HÀM TẠO NÚT BẤM FILTER RA SIDEBAR
         function createFilterBtns(mapItems, containerFilter, type) {
             if (!containerFilter) return;
             containerFilter.innerHTML = '';
@@ -68,7 +87,7 @@
                 btnFilter.innerText = displayVal;
                 btnFilter.className = 'filter-btn';
                 
-                // Thu gọn các nút Tags Game nếu vượt quá 15 nút
+                // Thu gọn bớt các nút Tags Game nếu quá nhiều (trên 15 nút)
                 if (type === 'genres' && index >= 15) btnFilter.style.display = 'none';
                 
                 btnFilter.onclick = function(e) {
@@ -76,7 +95,7 @@
                     if (grid.classList.contains('pitu-loading')) return;
 
                     this.classList.toggle('active');
-                    CONFIG.currentShown = CONFIG.itemsPerLoad; 
+                    CONFIG.currentShown = CONFIG.itemsPerLoad; // Reset số lượng hiển thị về 15 khi chọn bộ lọc mới
                     applyFilter();
                 };
                 btnFilter.dataset.val = keyVal;
@@ -84,7 +103,7 @@
                 containerFilter.appendChild(btnFilter);
             });
 
-            // Nút hiển thị thêm dấu ba chấm cho mục Tags
+            // Nút hiển thị thêm ba chấm dành riêng cho khu vực Tags Game
             if (type === 'genres' && sortedKeys.length > 15) {
                 const more = document.createElement('button');
                 more.type = 'button';
@@ -99,12 +118,12 @@
             }
         }
 
-        // Khởi tạo danh sách nút bấm bên Sidebar
+        // Khởi sinh các cụm nút bấm bộ lọc
         createFilterBtns(gametypes, gametypeContainer, 'gametype');
         createFilterBtns(engines, engineContainer, 'engine');
         createFilterBtns(genres, genreContainer, 'genres');
 
-        // Lắng nghe ô tìm kiếm nhanh danh sách nút Tags Game
+        // Tìm kiếm nhanh cho ô Search Tag
         if (tagSearchInput) {
             tagSearchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();
@@ -130,12 +149,14 @@
             });
         }
 
-        // Hàm render kiểm soát ẩn hiện số lượng card (Cơ chế loadout cũ)
+        // BƯỚC 3: HÀM ĐIỀU KHIỂN HIỂN THỊ LƯỚI VÀ PHÂN TRANG "XEM THÊM"
         function renderGridDisplay() {
-            // Ẩn tất cả các card trước
-            allCards.forEach(card => card.style.display = 'none');
+            // Ẩn toàn bộ thẻ game trên HTML trước để tính toán lại
+            allCards.forEach(card => {
+                card.style.setProperty('display', 'none', 'important');
+            });
 
-            // Cắt mảng lấy đúng số lượng cần hiển thị
+            // Cắt mảng lấy danh sách các phần tử được hiển thị ở hiện tại
             const itemsToShow = filteredCards.slice(0, CONFIG.currentShown);
             
             if (itemsToShow.length === 0) {
@@ -153,28 +174,30 @@
                 const noResultEl = grid.querySelector('.no-results');
                 if (noResultEl) noResultEl.style.display = 'none';
                 
-                // Hiển thị các card hợp lệ
-                itemsToShow.forEach(card => card.style.display = 'block');
+                // Hiển thị chuẩn xác các item hợp lệ
+                itemsToShow.forEach(card => {
+                    card.style.setProperty('display', 'block', 'important');
+                });
             }
 
-            // Kiểm tra xử lý ẩn/hiện nút "Xem thêm game..." dưới đáy trang
-            if (loadMoreBtn) {
+            // Xử lý logic ẩn/hiện Container bọc nút và nút "Xem thêm game..." dưới đáy
+            if (loadMoreContainer || loadMoreBtn) {
                 if (CONFIG.currentShown >= filteredCards.length) {
-                    loadMoreBtn.parentNode.style.display = 'none';
-                    loadMoreBtn.style.display = 'none';
+                    if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
+                    if (loadMoreBtn) loadMoreBtn.style.setProperty('display', 'none', 'important');
                 } else {
-                    loadMoreBtn.parentNode.style.display = 'block';
-                    loadMoreBtn.style.display = 'inline-block';
+                    if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'block', 'important');
+                    if (loadMoreBtn) loadMoreBtn.style.setProperty('display', 'inline-block', 'important');
                 }
             }
 
-            // Gọi hàm tải ảnh lười biếng nếu có cấu hình sẵn
+            // Gọi hàm tải Lazy-load ảnh của bro nếu có
             if (typeof loadVisibleImages === 'function') {
                 try { loadVisibleImages(); } catch(e) {}
             }
         }
 
-        // Đính sự kiện click cho nút Xem thêm game
+        // Gán sự kiện click trực tiếp cho nút Xem thêm bài viết
         if (loadMoreBtn) {
             loadMoreBtn.onclick = function(e) {
                 e.preventDefault();
@@ -183,7 +206,7 @@
             };
         }
 
-        // Xử lý bộ lọc đa điều kiện tổng hợp (Thể loại + Engine + Tags)
+        // BƯỚC 4: LOGIC BỘ LỌC ĐA ĐIỀU KIỆN (GAMETYPE + ENGINE + TAGS)
         function applyFilter() {
             const activeGametypes = Array.from(document.querySelectorAll('.filter-btn[data-type="gametype"].active')).map(b => b.dataset.val);
             const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
@@ -198,11 +221,11 @@
                     const cardGenresRaw = card.dataset.genres || '';
                     const cardGenres = cardGenresRaw ? cardGenresRaw.split(',').map(s => s.trim().toLowerCase()) : [];
 
-                    // Kiểm tra điều kiện Khớp Gametype
+                    // Thỏa mãn điều kiện lọc Gametype
                     const gtMatch = activeGametypes.length === 0 || activeGametypes.includes(cardGametype);
-                    // Kiểm tra điều kiện Khớp Engine
+                    // Thỏa mãn điều kiện lọc Engine
                     const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
-                    // Kiểm tra điều kiện Khớp tất cả các Tags lựa chọn cùng lúc
+                    // Thỏa mãn điều kiện lọc đồng thời tất cả các Tags tích chọn
                     const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
 
                     return gtMatch && eMatch && gMatch;
@@ -213,7 +236,7 @@
             }, CONFIG.fakeLoadTime);
         }
 
-        // Chạy khởi tạo hiển thị lưới game ban đầu
+        // Thực thi kết xuất giao diện ban đầu khi vừa tải trang xong
         renderGridDisplay();
     }
 
