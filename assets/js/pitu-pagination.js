@@ -102,36 +102,44 @@
 
         // Hàm tự động vẽ các nút số Trang (1, 2, 3...) khi kết quả lọc vượt quá giới hạn hiển thị
         function renderJSPaginator() {
-            if (!jsPaginator) return;
-            jsPaginator.innerHTML = '';
+    if (!jsPaginator) return;
+    jsPaginator.innerHTML = '';
 
-            const totalPages = Math.ceil(filteredItems.length / CONFIG.itemsPerPage);
-            if (totalPages <= 1) return; // Nếu tổng số game sau lọc nhỏ hơn hoặc bằng 15 thì không cần hiện nút
+    const totalPages = Math.ceil(filteredItems.length / CONFIG.itemsPerPage);
+    if (totalPages <= 1) return; // Nếu chỉ có 1 trang thì không cần vẽ nút
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageBtn = document.createElement('button');
-                pageBtn.innerText = i;
-                pageBtn.className = 'js-page-btn';
-                
-                // Style cơ bản cho nút chuyển trang (bạn có thể chỉnh sửa lại trong file CSS của mình)
-                pageBtn.style.cssText = 'padding: 8px 14px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; border-radius: 4px; color: #333; transition: all 0.2s;';
-                
-                if (i === CONFIG.currentPage) {
-                    pageBtn.style.background = '#007bff'; 
-                    pageBtn.style.color = '#fff';
-                    pageBtn.style.borderColor = '#007bff';
-                }
-
-                pageBtn.onclick = function() {
-                    CONFIG.currentPage = i;
-                    updateDisplay();
-                    if (grid) {
-                        window.scrollTo({ top: grid.offsetTop - 20, behavior: 'smooth' }); // Cuộn mượt lên đầu danh sách game
-                    }
-                };
-                jsPaginator.appendChild(pageBtn);
-            }
+    for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        
+        // ĐÃ SỬA: Ép kiểu button cụ thể để trình duyệt không hiểu nhầm là nút Submit gây reload trang
+        pageBtn.type = 'button'; 
+        
+        pageBtn.innerText = i;
+        pageBtn.className = 'js-page-btn';
+        
+        // Style cơ bản cho nút chuyển trang
+        pageBtn.style.cssText = 'padding: 8px 14px; border: 1px solid #ddd; background: #fff; cursor: pointer; font-weight: bold; border-radius: 4px; color: #333; transition: all 0.2s;';
+        
+        if (i === CONFIG.currentPage) {
+            pageBtn.style.background = '#007bff'; 
+            pageBtn.style.color = '#fff';
+            pageBtn.style.borderColor = '#007bff';
         }
+
+        // ĐÃ SỬA: Thêm tham số sự kiện 'e' và lệnh e.preventDefault() để chặn tuyệt đối việc nhảy trang bậy bạ
+        pageBtn.onclick = function(e) {
+            if (e) e.preventDefault(); // Chặn hành vi tải lại trang của trình duyệt
+            
+            CONFIG.currentPage = i;
+            updateDisplay();
+            
+            if (grid) {
+                window.scrollTo({ top: grid.offsetTop - 20, behavior: 'smooth' }); // Cuộn nhẹ lên đầu lưới game
+            }
+        };
+        jsPaginator.appendChild(pageBtn);
+    }
+}
 
         // Hàm điều khiển ẩn/hiện và phân chia giao diện
         function updateDisplay() {
