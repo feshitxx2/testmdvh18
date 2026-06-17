@@ -25,7 +25,48 @@ layout: default
         <span></span>
         <span></span>
     </div>    
+  <style>
+    /* Ép layout */
+    .main-content-wrapper {
+      display: flex !important;
+      gap: 20px !important;
+      align-items: flex-start !important;
+      max-width: 1200px !important;
+      margin: 0 auto !important;
+    }
     
+    /* Sidebar */
+    #genre-sidebar {
+      width: 250px !important;
+      flex-shrink: 0 !important;
+      background: #12091d !important;
+      border: 1px solid #d4487f !important;
+      padding: 15px !important;
+      color: white !important;
+      border-radius: 8px !important;
+    }
+
+    /* Game grid */
+    .game-grid {
+      flex: 1 !important;
+    }
+
+    /* Nút */
+    .filter-btn {
+      display: block !important;
+      width: 100% !important;
+      margin-bottom: 5px !important;
+      padding: 8px !important;
+      border: 1px solid #333 !important;
+      cursor: pointer !important;
+      text-align: left !important;
+      color: white !important;
+      background: linear-gradient(to bottom, #12091d, #1b0e2a) !important;
+    }
+    .filter-btn.active {
+      background: radial-gradient(circle, #241032, #4a1e4c, #752b62, #a43973, #d4487f) !important;
+    }
+  </style>
 <div class="menu-container">
     <div class="dropdown-content">
         <div class="dropdown-header">DANH MỤC</div>
