@@ -1336,20 +1336,3 @@ img {
         font-size: 12px;
     }
 }
-
-.filter-btn {
-    display: block;
-    width: 100%;
-    margin-bottom: 5px;
-    padding: 8px;
-    border: 1px solid #333;
-    cursor: pointer;
-    text-align: left;
-    color: white;
-    background: linear-gradient(to bottom, #12091d, #1b0e2a);
-}
-
-
-.filter-btn.active {
-    background: radial-gradient(circle, #241032, #4a1e4c, #752b62, #a43973, #d4487f);
-}
