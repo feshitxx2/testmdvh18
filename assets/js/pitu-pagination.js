@@ -4,7 +4,7 @@
         currentShown: 21
     };
 
-    // Mảng lưu trữ danh sách các game ĐÃ QUA BỘ LỌC (filter)
+    // Mảng lưu trữ danh sách các game đã thỏa mãn bộ lọc (filter)
     let filteredItems = [];
 
     function initPituEngine() {
@@ -13,35 +13,35 @@
             return;
         }
 
-        // Đảm bảo lấy đúng các Class/ID đang chạy tốt ở bản cũ của bạn
-        const cards = document.querySelectorAll('.game-card'); 
+        // CHUẨN HÓA CLASS: Tìm chính xác các phần tử pitu trong HTML của bạn
+        const items = document.querySelectorAll('.pitu-item');
+        const grid = document.querySelector('.pitu-grid') || document.querySelector('.game-grid') || document.querySelector('.grid'); 
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
-        const grid = document.querySelector('.game-grid') || document.querySelector('.pitu-grid'); 
         
         const btn = document.getElementById('btn-load-more');
         const container = document.getElementById('load-more-container');
 
-        if (cards.length === 0) return;
+        if (items.length === 0) return;
 
         const engines = new Map();
         const genres = new Map();
 
-        // Thu thập dữ liệu bộ lọc từ các thẻ game (.pitu-item)
-        cards.forEach(card => {
-            if(card.dataset.engine) {
-                const raw = card.dataset.engine.trim();
+        // Thu thập dữ liệu từ thuộc tính data- của các thẻ .pitu-item để làm bộ lọc
+        items.forEach(item => {
+            if(item.dataset.engine) {
+                const raw = item.dataset.engine.trim();
                 engines.set(raw.toLowerCase(), raw);
             }
-            if(card.dataset.genres) {
-                card.dataset.genres.split(',').forEach(g => {
+            if(item.dataset.genres) {
+                item.dataset.genres.split(',').forEach(g => {
                     const raw = g.trim();
                     if(raw) genres.set(raw.toLowerCase(), raw);
                 });
             }
         });
 
-        // Tạo nút bộ lọc HTML
+        // Hàm tạo các nút bấm bộ lọc (Engine / Thể loại)
         function createBtns(mapItems, containerFilter, type) {
             const sortedItems = Array.from(mapItems.values()).sort();
             sortedItems.forEach((displayVal, index) => {
@@ -51,7 +51,7 @@
                 if (index >= 15) btnFilter.style.display = 'none'; 
                 btnFilter.onclick = function() {
                     this.classList.toggle('active');
-                    // Reset số lượng hiển thị về mặc định (21) khi đổi bộ lọc
+                    // Reset số lượng hiển thị về 21 khi người dùng đổi bộ lọc
                     CONFIG.currentShown = CONFIG.itemsPerLoad; 
                     filter();
                 };
@@ -72,10 +72,11 @@
             }
         }
 
+        // Khởi tạo các nút chọn trên giao diện
         createBtns(engines, engineContainer, 'engine');
         createBtns(genres, genreContainer, 'genres');
 
-        // Hàm tải ảnh Banner từ PITU_DATABASE cho các game đang hiển thị
+        // Hàm tải ảnh từ PITU_DATABASE cho những game được hiển thị công khai
         function loadVisibleImages() {
             filteredItems.forEach((item, index) => {
                 if (index < CONFIG.currentShown) {
@@ -93,22 +94,22 @@
             });
         }
 
-        // Hàm cập nhật hiển thị danh sách game dựa trên phân trang
+        // Hàm cập nhật trạng thái hiển thị (Ẩn/Hiện game và Thanh phân trang)
         function updateDisplay() {
-            // Ẩn tất cả các game trước
-            cards.forEach(card => {
-                card.style.display = 'none';
-                card.classList.remove('is-visible');
+            // Ẩn toàn bộ danh sách gốc trước
+            items.forEach(item => {
+                item.style.display = 'none';
+                item.classList.remove('is-visible');
             });
 
-            // Chỉ hiển thị số lượng game thuộc danh sách đã filter theo giới hạn phân trang
+            // Chỉ hiển thị các game thuộc danh sách đã lọc, giới hạn theo CONFIG.currentShown
             const itemsToShow = filteredItems.slice(0, CONFIG.currentShown);
             itemsToShow.forEach(item => {
-                item.style.display = 'flex'; 
+                item.style.display = 'flex'; // Trả về dạng flex hiển thị ban đầu của bạn
                 item.classList.add('is-visible');
             });
 
-            // Ẩn/Hiện cả container và nút Tải thêm dựa trên tổng số game sau khi filter
+            // Ẩn thanh phân trang (paginator) nếu số lượng hiển thị đã bao trọn danh sách game sau lọc
             if (container) {
                 container.style.display = (CONFIG.currentShown >= filteredItems.length) ? 'none' : 'block';
             }
@@ -119,7 +120,7 @@
             loadVisibleImages();
         }
 
-        // Xử lý Sự kiện cuộn vô hạn (Infinite Scroll)
+        // Xử lý sự kiện Cuộn vô hạn (Infinite Scroll)
         let isLoading = false;
         window.addEventListener('scroll', () => {
             if (!isLoading && CONFIG.currentShown < filteredItems.length) {
@@ -135,7 +136,7 @@
             }
         });
 
-        // Xử lý Sự kiện bấm nút Tải thêm thủ công
+        // Xử lý sự kiện bấm nút "Tải thêm" thủ công (nếu có)
         if (btn) {
             btn.onclick = function(e) {
                 e.preventDefault();
@@ -144,9 +145,9 @@
             };
         }
 
-        // Hàm xử lý Bộ lọc (Filter)
+        // Hàm xử lý Bộ lọc logic chính
         function filter() {
-            // Ẩn ngay lập tức nút tải thêm / thanh paginator khi đang xử lý filter
+            // YÊU CẦU: Ẩn ngay thanh phân trang / paginator khi vừa kích hoạt filter
             if (container) container.style.display = 'none';
             if (btn) btn.style.display = 'none';
             
@@ -156,10 +157,10 @@
                 const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
                 const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
                 
-                // Lọc chính xác các card theo cấu trúc cũ
-                filteredItems = Array.from(cards).filter(card => {
-                    const cardEngine = card.dataset.engine ? card.dataset.engine.toLowerCase() : '';
-                    const cardGenres = card.dataset.genres ? card.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
+                // Thực hiện lọc dữ liệu dựa trên mảng items (.pitu-item)
+                filteredItems = Array.from(items).filter(item => {
+                    const cardEngine = item.dataset.engine ? item.dataset.engine.toLowerCase() : '';
+                    const cardGenres = item.dataset.genres ? item.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
                     
                     const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
                     const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
@@ -167,16 +168,17 @@
                     return eMatch && gMatch;
                 });
 
-                // Cập nhật lại giao diện hiển thị số lượng game mới sau khi lọc
+                // Cập nhật hiển thị danh sách game mới và tính toán ẩn hiện lại paginator
                 updateDisplay();
 
                 if (grid) grid.classList.remove('loading-grid');
             }, 200);
         }
 
-        // Chạy khởi tạo filter lần đầu để thiết lập trạng thái ban đầu
+        // Chạy kiểm tra bộ lọc lần đầu tiên để phân trang trang chủ ngay khi tải xong
         filter();
     }
 
+    // Đợi trang tải hoàn chỉnh để đảm bảo PITU_DATABASE chuẩn bị xong dữ liệu banner
     window.addEventListener('load', initPituEngine);
 })();
