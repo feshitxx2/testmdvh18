@@ -162,7 +162,16 @@ layout: default
                 <span class="tag-item tag-{{ type | downcase | slugify }}">{{ type }}</span>
               {% endfor %}
             </div>
-
+            <aside class="sidebar-right" style="width: 250px; flex-shrink: 0; position: sticky; top: 20px;">
+        <div class="filter-box">
+            <h3>GAME ENGINE</h3>
+            <div id="engine-filters"></div>
+        </div>
+        <div class="filter-box">
+            <h3>THỂ LOẠI</h3>
+            <div id="genre-filters"></div>
+        </div>
+    </aside>
             <i class="fa-solid fa-angles-down download-icon-fa"></i> 
 
             {% if post.categories.size > 0 %}
@@ -229,29 +238,6 @@ layout: default
 
 </div>
 {% endif %}
-<div class="main-wrapper" style="display: flex; gap: 20px; align-items: flex-start; max-width: 1200px; margin: 0 auto; padding: 0 10px;">
-    
-    <div class="game-grid">
-        {% assign sorted_posts = paginator.posts | sort: 'date' | reverse %}
-        {% for post in sorted_posts %}
-            <div class="game-card" data-engine="{{ post.engine }}" data-genres="{{ post.genre }}">
-                <a href="{{ post.url | relative_url }}">
-                    </a>
-            </div>
-        {% endfor %}
-    </div>
-
-    <aside class="sidebar-right" style="width: 250px; flex-shrink: 0; position: sticky; top: 20px;">
-        <div class="filter-box">
-            <h3>GAME ENGINE</h3>
-            <div id="engine-filters"></div>
-        </div>
-        <div class="filter-box">
-            <h3>THỂ LOẠI</h3>
-            <div id="genre-filters"></div>
-        </div>
-    </aside>
-</div>
 <footer class="footer-section" style="background: linear-gradient(to bottom, #1a1131, #0a0a0a); padding: 30px 0 15px 0; margin-top: 40px; border-top: 1px solid rgba(247, 143, 144, 0.2); font-family: 'Segoe UI', Roboto, sans-serif; color: #eee; width: 100%;">
     <div class="footer-container" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; width: 90%; max-width: 1300px; margin: 0 auto; gap: 20px;">   
         <div class="footer-col" style="flex: 1; min-width: 250px;">
