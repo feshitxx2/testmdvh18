@@ -1336,39 +1336,38 @@ img {
         font-size: 12px;
     }
 }
-/* Container chính */
-.main-content-wrapper {
-    margin-top: 20px;
-    margin-bottom: 20px;
+.sidebar-right {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-/* Đảm bảo game grid không bị ép */
-.game-grid {
-    display: grid;
-    /* Tự động chia cột dựa trên độ rộng */
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
+/* Box chứa filter */
+.filter-box {
+    background: #12091d;
+    border: 1px solid #d4487f;
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
 }
 
-/* Sidebar cố định độ rộng */
-#genre-sidebar {
-    position: sticky;
-    top: 20px; /* Dính theo màn hình khi scroll */
-}
+.filter-box h3 { margin: 0 0 10px 0; font-size: 16px; border-bottom: 1px solid #333; padding-bottom: 5px; }
 
-/* Nút filter đẹp hơn */
+/* Nút filter */
 .filter-btn {
     display: inline-block;
-    padding: 8px 12px;
-    margin: 4px;
+    padding: 4px 10px;
+    margin: 3px;
     background: #1b0e2a;
     border: 1px solid #d4487f;
-    border-radius: 5px;
-    color: #fff;
+    border-radius: 4px;
     cursor: pointer;
-    transition: 0.3s;
+    color: #fff;
+    font-size: 12px;
 }
+.filter-btn.active { background: #d4487f; }
 
-.filter-btn.active {
-    background: #d4487f;
+/* Nút "Xem thêm" */
+.show-more-btn {
+    background: none; border: none; color: #d4487f; cursor: pointer; font-size: 12px; margin-top: 5px;
 }
