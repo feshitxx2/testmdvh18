@@ -438,58 +438,43 @@ document.addEventListener("DOMContentLoaded", function() {
     const engineContainer = document.getElementById('engine-filters');
     const genreContainer = document.getElementById('genre-filters');
     
-    // Thu thập tags
     const engines = new Set();
     const genres = new Set();
+
     cards.forEach(card => {
-        if(card.dataset.engine) engines.add(card.dataset.engine);
-        if(card.dataset.genres) card.dataset.genres.split(',').forEach(g => genres.add(g.trim()));
+        // Lấy dữ liệu từ data-engine và data-genres
+        const e = card.dataset.engine;
+        if(e && e !== 'Unknown') engines.add(e);
+        
+        const gList = card.dataset.genres;
+        if(gList) gList.split(',').forEach(g => { if(g.trim()) genres.add(g.trim()) });
     });
 
-    // Hàm tạo tag có nút "..."
-    function renderTags(items, container, dataAttr) {
-        const list = Array.from(items).sort();
-        const maxDisplay = 10; // Giới hạn 10 tags
-        
-        list.forEach((item, index) => {
-            const btn = document.createElement('button');
-            btn.innerText = item;
-            btn.className = 'filter-btn';
-            if(index >= maxDisplay) btn.style.display = 'none'; // Ẩn nếu quá nhiều
-            
-            btn.onclick = function() {
-                this.classList.toggle('active');
-                filterCards();
-            };
-            btn.dataset.val = item;
-            btn.dataset.attr = dataAttr;
-            container.appendChild(btn);
-        });
-
-        if (list.length > maxDisplay) {
-            const moreBtn = document.createElement('button');
-            moreBtn.innerText = "...";
-            moreBtn.className = 'show-more-btn';
-            moreBtn.onclick = function() {
-                container.querySelectorAll('.filter-btn').forEach(b => b.style.display = 'inline-block');
-                this.style.display = 'none';
-            };
-            container.appendChild(moreBtn);
-        }
+    // Tạo nút
+    function createBtn(text, container, type) {
+        const btn = document.createElement('button');
+        btn.innerText = text;
+        btn.className = 'filter-btn';
+        btn.onclick = function() {
+            this.classList.toggle('active');
+            filter();
+        };
+        btn.dataset.val = text;
+        btn.dataset.type = type;
+        container.appendChild(btn);
     }
 
-    renderTags(engines, engineContainer, 'engine');
-    renderTags(genres, genreContainer, 'genres');
+    engines.forEach(e => createBtn(e, engineContainer, 'engine'));
+    genres.forEach(g => createBtn(g, genreContainer, 'genres'));
 
-    // Logic lọc
-    function filterCards() {
-        const activeEngines = Array.from(document.querySelectorAll('#engine-filters .filter-btn.active')).map(b => b.dataset.val);
-        const activeGenres = Array.from(document.querySelectorAll('#genre-filters .filter-btn.active')).map(b => b.dataset.val);
+    function filter() {
+        const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
+        const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
 
         cards.forEach(card => {
-            const eMatch = activeEngines.length === 0 || activeEngines.includes(card.dataset.engine);
-            const gMatch = activeGenres.length === 0 || activeGenres.every(g => card.dataset.genres.includes(g));
-            card.style.display = (eMatch && gMatch) ? 'block' : 'none';
+            const matchEngine = activeEngines.length === 0 || activeEngines.includes(card.dataset.engine);
+            const matchGenre = activeGenres.length === 0 || activeGenres.every(g => card.dataset.genres.includes(g));
+            card.style.display = (matchEngine && matchGenre) ? 'block' : 'none';
         });
     }
 });
