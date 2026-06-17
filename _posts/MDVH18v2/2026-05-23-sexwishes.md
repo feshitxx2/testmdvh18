@@ -15,7 +15,7 @@ platform: "PC"
 dungluong: "5GB"
 phienban: "Final"
 dev: "Dirty Adventures"
-genre: "3d game, animated, big ass, big tits, male protagonist, milf, oral sex, pov, rpg, superpowers, vaginal sex, voiced"
+genre: "3dcg, animated, big ass, big tits, male protagonist, milf, oral sex, pov, rpg, superpowers, vaginal sex, voiced"
 
 linkpixel: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L2lGcWtYOWVr"
 linkgofile: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9nb2ZpbGUuaW8vZC9lV29iZnM="
