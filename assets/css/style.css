@@ -1336,43 +1336,39 @@ img {
         font-size: 12px;
     }
 }
-    /* Ép layout */
-    .main-content-wrapper {
-      display: flex !important;
-      gap: 20px !important;
-      align-items: flex-start !important;
-      max-width: 1200px !important;
-      margin: 0 auto !important;
-    }
-    
-    /* Sidebar */
-    #genre-sidebar {
-      width: 250px !important;
-      flex-shrink: 0 !important;
-      background: #12091d !important;
-      border: 1px solid #d4487f !important;
-      padding: 15px !important;
-      color: white !important;
-      border-radius: 8px !important;
-    }
+/* Container chính */
+.main-content-wrapper {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
 
-    /* Game grid */
-    .game-grid {
-      flex: 1 !important;
-    }
+/* Đảm bảo game grid không bị ép */
+.game-grid {
+    display: grid;
+    /* Tự động chia cột dựa trên độ rộng */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
 
-    /* Nút */
-    .filter-btn {
-      display: block !important;
-      width: 100% !important;
-      margin-bottom: 5px !important;
-      padding: 8px !important;
-      border: 1px solid #333 !important;
-      cursor: pointer !important;
-      text-align: left !important;
-      color: white !important;
-      background: linear-gradient(to bottom, #12091d, #1b0e2a) !important;
-    }
-    .filter-btn.active {
-      background: radial-gradient(circle, #241032, #4a1e4c, #752b62, #a43973, #d4487f) !important;
-    }
+/* Sidebar cố định độ rộng */
+#genre-sidebar {
+    position: sticky;
+    top: 20px; /* Dính theo màn hình khi scroll */
+}
+
+/* Nút filter đẹp hơn */
+.filter-btn {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 4px;
+    background: #1b0e2a;
+    border: 1px solid #d4487f;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.filter-btn.active {
+    background: #d4487f;
+}
