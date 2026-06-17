@@ -15,7 +15,7 @@ platform: "PC"
 dungluong: "1.6GB"
 phienban: "v1.06"
 dev: "Maron Maron"
-genre: "2DCG, Ahegao, Anal, Animated, BDSM, Big Ass, Big Tits, Censored, Cosplay, Creampie, Footjob, Groping, Japanese Game, Management, Male Protagonist, Male Domination, Oral Sex, Romance, School Setting, Simulator, Pregnancy, Titfuck, Teasing, Trainer, Vaginal Sex, Virgin, Voiced, Voyeurism"
+genre: "2DCG, 3dcg, Ahegao, Anal, Animated, BDSM, Big Ass, Big Tits, Censored, Cosplay, Creampie, Footjob, Groping, Japanese Game, Management, Male Protagonist, Male Domination, Oral Sex, Romance, School Setting, Simulator, Pregnancy, Titfuck, Teasing, Trainer, Vaginal Sex, Virgin, Voiced, Voyeurism"
 
 linkpixel: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91Lzd4cUYyZkM4"
 linkgofile: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9nb2ZpbGUuaW8vZC9JaFNETWM="
