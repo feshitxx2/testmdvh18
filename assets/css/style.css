@@ -1375,21 +1375,18 @@ img {
     opacity: 0.4;
     pointer-events: none;
 }
-/* Hiệu ứng chuyển đổi mượt mà cho cả lưới game */
 .game-grid {
     transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
     opacity: 1;
     transform: translateY(0);
 }
 
-/* Khi đang giả vờ load: mờ đi và dịch nhẹ xuống */
 .game-grid.pitu-loading {
     opacity: 0.2;
     transform: translateY(10px);
-    pointer-events: none; /* Khóa không cho bấm bậy lúc đang load */
+    pointer-events: none; 
 }
 
-/* Hiệu ứng hiện hình mượt mà cho từng card game mới */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -1404,38 +1401,31 @@ img {
 .game-card {
     animation: fadeInUp 0.4s ease-out forwards;
 }
-/* TỐI ƯU RESPONSIVE HÀI HÒA CHO ĐIỆN THOẠI & MÁY TÍNH BẢNG */
 @media screen and (max-width: 992px) {
-    /* Đưa giao diện tổng thể về dạng 1 cột dọc thẳng đứng */
     .main-content-wrapper {
         flex-direction: column !important;
         gap: 20px !important;
         padding: 0 10px !important;
     }
 
-    /* Đẩy lưới game chiếm trọn chiều ngang màn hình */
     .game-grid {
         width: 100% !important;
         display: grid !important;
-        /* Tự động chia cột dựa trên độ rộng: tối thiểu 150px một card để vừa vặn mobile */
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
         gap: 12px !important;
         margin-bottom: 25px !important;
     }
 
-    /* Ép card game bỏ các thuộc tính float hoặc width dạng px cố định của PC */
     .game-card {
         width: 100% !important;
         margin: 0 !important;
     }
 
-    /* Thanh chứa bộ lọc đẩy xuống dưới hoặc lên trên tùy vị trí HTML, rộng 100% */
-    /* GIAO DIỆN MẶC ĐỊNH TRÊN PC */
 .toggle-filter-btn {
-    display: none; /* PC ẩn nút này đi */
+    display: none;
 }
 .filter-content-wrapper {
-    display: block !important; /* PC luôn luôn hiện thẳng bộ lọc ra */
+    display: block !important;
 }
 .filter-box {
     background: #12091d;
@@ -1482,10 +1472,9 @@ img {
     .sidebar-right {
         width: 100% !important;
         position: static !important;
-        order: -1; /* Đẩy bộ lọc lên trên lưới game trên mobile */
+        order: -1;
     }
 
-    /* HIỆN NÚT BẤM TRÊN MOBILE */
     .toggle-filter-btn {
         display: block !important;
         width: 100%;
@@ -1501,17 +1490,17 @@ img {
         margin-bottom: 10px;
     }
 
-    /* ÉP ẨN KHUNG BỘ LỌC TRÊN MOBILE KHI CHƯA BẤM NÚT */
+ 
     .filter-content-wrapper {
         display: none !important;
     }
 
-    /* KHI ĐƯỢC THÊM CLASS .show THÌ MỚI HIỆN TRÊN MOBILE */
+
     .filter-content-wrapper.show {
         display: block !important;
     }
 
-    /* Tăng kích thước nút bấm trên mobile cho vừa ngón tay */
+
     .filter-btn, .show-more-btn {
         padding: 8px 14px !important;
         margin: 5px 4px !important;
