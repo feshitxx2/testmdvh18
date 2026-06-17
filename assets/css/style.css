@@ -1336,19 +1336,21 @@ img {
         font-size: 12px;
     }
 }
-/* Ép sidebar hiển thị và không bị nát layout */
-.filter-sidebar {
-    background: #12091d;
-    padding: 15px;
-    border-radius: 8px;
-    border: 1px solid #d4487f;
+/* Style nút filter */
+.filter-btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+    padding: 8px;
+    border: 1px solid #333;
+    cursor: pointer;
+    text-align: left;
     color: white;
+    /* Màu mặc định bạn yêu cầu */
+    background: linear-gradient(to bottom, #12091d, #1b0e2a);
 }
 
-/* Xử lý hiển thị trên mobile (để không bị mất giao diện) */
-@media (max-width: 768px) {
-    .game-grid-container, .filter-sidebar {
-        width: 100% !important;
-        float: none !important;
-    }
+/* Màu khi chọn (Radial gradient) */
+.filter-btn.active {
+    background: radial-gradient(circle, #241032, #4a1e4c, #752b62, #a43973, #d4487f);
 }
