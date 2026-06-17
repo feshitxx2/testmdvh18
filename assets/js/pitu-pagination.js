@@ -1,39 +1,39 @@
 (function() {
     const CONFIG = {
-        itemsPerLoad: 15, // Số lượng game hiển thị thêm mỗi lần bấm
-        currentShown: 15, // Lượng game hiển thị mặc định ban đầu
-        fakeLoadTime: 400 // Hiệu ứng load giả vờ 400ms
+        itemsPerLoad: 15, 
+        currentShown: 15, 
+        fakeLoadTime: 400 
     };
 
+    let originalHTML = ''; 
     let allCards = [];
     let filteredCards = [];
+    let filteredData = []; // Dành riêng cho trang chủ khi lọc bằng ALL_GAMES_DATA
+    let isFiltering = false;
 
     function initPituEngine() {
         const grid = document.querySelector('.game-grid');
         if (!grid) return;
 
-        // Lấy toàn bộ card game đang có mặt trên giao diện HTML
-        allCards = Array.from(grid.querySelectorAll('.game-card'));
-        if (allCards.length === 0) {
-            setTimeout(initPituEngine, 100);
-            return;
-        }
+        // Kiểm tra bối cảnh hệ thống
+        const isHomePage = (typeof ALL_GAMES_DATA !== "undefined" && Array.isArray(ALL_GAMES_DATA));
 
-        // Ban đầu gán mảng filter bằng toàn bộ card hiện có
-        filteredCards = [...allCards];
+        // Lưu trữ cấu trúc HTML phân trang mặc định của Jekyll
+        originalHTML = grid.innerHTML;
+        allCards = Array.from(grid.querySelectorAll('.game-card'));
 
         const gametypeContainer = document.getElementById('gametype-filters');
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
         const loadMoreBtn = document.getElementById('btn-load-more');
         const loadMoreContainer = document.getElementById('load-more-container');
+        const jekyllPaginator = document.getElementById('pitu-pagination-wrapper');
         const tagSearchInput = document.getElementById('pitu-tag-search');
 
         const gametypes = new Map();
         const engines = new Map();
         const genres = new Map();
 
-        // Hàm chuẩn hóa chuỗi hiển thị nút bấm
         function formatTagDisplay(tag) {
             const trimmed = tag.trim();
             if (trimmed.toLowerCase() === '3dcg') return '3DCG';
@@ -41,29 +41,22 @@
             return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
         }
 
-        // BƯỚC 1: QUÉT NGUỒN DỮ LIỆU ĐỂ TẠO NÚT BỘ LỌC
-        // Nếu có biến ALL_GAMES_DATA toàn cục (Trang chủ), ưu tiên quét nó để không sót nút
-        if (typeof ALL_GAMES_DATA !== "undefined" && Array.isArray(ALL_GAMES_DATA)) {
+        // GOM DỮ LIỆU ĐỂ TẠO NÚT BẤM SIDEBAR
+        if (isHomePage) {
             ALL_GAMES_DATA.forEach(game => {
-                const gt = game.gametype;
-                const eg = game.engine;
-                const gr = game.genre;
-
-                if (gt && gt.trim()) gametypes.set(gt.trim().toLowerCase(), formatTagDisplay(gt));
-                if (eg && eg.trim()) engines.set(eg.trim().toLowerCase(), formatTagDisplay(eg));
-                if (gr && gr.trim()) {
-                    gr.split(',').forEach(g => {
+                if (game.gametype && game.gametype.trim()) gametypes.set(game.gametype.trim().toLowerCase(), formatTagDisplay(game.gametype));
+                if (game.engine && game.engine.trim()) engines.set(game.engine.trim().toLowerCase(), formatTagDisplay(game.engine));
+                if (game.genre && game.genre.trim()) {
+                    game.genre.split(',').forEach(g => {
                         if (g.trim()) genres.set(g.trim().toLowerCase(), formatTagDisplay(g));
                     });
                 }
             });
         } else {
-            // Nếu ở trang Pages (không có mảng tĩnh), quét trực tiếp từ HTML các card đang hiển thị
             allCards.forEach(card => {
                 const gt = card.dataset.gametype;
                 const eg = card.dataset.engine;
                 const gr = card.dataset.genres;
-
                 if (gt && gt.trim()) gametypes.set(gt.trim().toLowerCase(), formatTagDisplay(gt));
                 if (eg && eg.trim()) engines.set(eg.trim().toLowerCase(), formatTagDisplay(eg));
                 if (gr && gr.trim()) {
@@ -74,7 +67,7 @@
             });
         }
 
-        // BƯỚC 2: HÀM TẠO NÚT BẤM FILTER RA SIDEBAR
+        // HÀM SINH NÚT BẤM
         function createFilterBtns(mapItems, containerFilter, type) {
             if (!containerFilter) return;
             containerFilter.innerHTML = '';
@@ -87,7 +80,6 @@
                 btnFilter.innerText = displayVal;
                 btnFilter.className = 'filter-btn';
                 
-                // Thu gọn bớt các nút Tags Game nếu quá nhiều (trên 15 nút)
                 if (type === 'genres' && index >= 15) btnFilter.style.display = 'none';
                 
                 btnFilter.onclick = function(e) {
@@ -95,7 +87,7 @@
                     if (grid.classList.contains('pitu-loading')) return;
 
                     this.classList.toggle('active');
-                    CONFIG.currentShown = CONFIG.itemsPerLoad; // Reset số lượng hiển thị về 15 khi chọn bộ lọc mới
+                    CONFIG.currentShown = CONFIG.itemsPerLoad; 
                     applyFilter();
                 };
                 btnFilter.dataset.val = keyVal;
@@ -103,7 +95,6 @@
                 containerFilter.appendChild(btnFilter);
             });
 
-            // Nút hiển thị thêm ba chấm dành riêng cho khu vực Tags Game
             if (type === 'genres' && sortedKeys.length > 15) {
                 const more = document.createElement('button');
                 more.type = 'button';
@@ -118,12 +109,11 @@
             }
         }
 
-        // Khởi sinh các cụm nút bấm bộ lọc
         createFilterBtns(gametypes, gametypeContainer, 'gametype');
         createFilterBtns(engines, engineContainer, 'engine');
         createFilterBtns(genres, genreContainer, 'genres');
 
-        // Tìm kiếm nhanh cho ô Search Tag
+        // TÌM KIẾM NHANH Ô TAGS
         if (tagSearchInput) {
             tagSearchInput.addEventListener('input', function() {
                 const query = this.value.toLowerCase().trim();
@@ -149,55 +139,111 @@
             });
         }
 
-        // BƯỚC 3: HÀM ĐIỀU KHIỂN HIỂN THỊ LƯỚI VÀ PHÂN TRANG "XEM THÊM"
-        function renderGridDisplay() {
-            // Ẩn toàn bộ thẻ game trên HTML trước để tính toán lại
-            allCards.forEach(card => {
-                card.style.setProperty('display', 'none', 'important');
-            });
+        // HÀM TẠO HTML CARD TRANG CHỦ KHI CHẠY FILTER DỮ LIỆU GỐC
+        function generateCardHTML(game) {
+            const gTypegame = game.typegame || [];
+            const gCategories = game.categories || [];
+            const gUrl = game.url || '#';
+            const gId = game.id || game.url.split('/').pop().replace('.html', '');
+            const gTitle = game.namebanner || game.title || '';
 
-            // Cắt mảng lấy danh sách các phần tử được hiển thị ở hiện tại
-            const itemsToShow = filteredCards.slice(0, CONFIG.currentShown);
-            
-            if (itemsToShow.length === 0) {
-                let noResultEl = grid.querySelector('.no-results');
-                if (!noResultEl) {
-                    noResultEl = document.createElement('div');
-                    noResultEl.className = 'no-results';
-                    noResultEl.style.cssText = 'width:100%; text-align:center; padding:40px; font-weight:bold; color:#888;';
-                    noResultEl.innerText = 'Không tìm thấy game tương thích bộ lọc!';
-                    grid.appendChild(noResultEl);
-                } else {
-                    noResultEl.style.display = 'block';
-                }
-            } else {
-                const noResultEl = grid.querySelector('.no-results');
-                if (noResultEl) noResultEl.style.display = 'none';
-                
-                // Hiển thị chuẩn xác các item hợp lệ
-                itemsToShow.forEach(card => {
-                    card.style.setProperty('display', 'block', 'important');
+            let typeTagsHTML = '';
+            if (Array.isArray(gTypegame)) {
+                gTypegame.forEach(type => {
+                    const slug = type.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                    typeTagsHTML += `<span class="tag-item tag-${slug}">${type}</span>`;
                 });
             }
 
-            // Xử lý logic ẩn/hiện Container bọc nút và nút "Xem thêm game..." dưới đáy
-            if (loadMoreContainer || loadMoreBtn) {
-                if (CONFIG.currentShown >= filteredCards.length) {
-                    if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
-                    if (loadMoreBtn) loadMoreBtn.style.setProperty('display', 'none', 'important');
+            let badgeHTML = '';
+            if (gCategories && gCategories.length > 0) {
+                const badgeText = gCategories[0].replace(/-/g, ' ');
+                badgeHTML = `<div class="card-badge">${badgeText}</div>`;
+            }
+
+            return `
+                <div class="game-card" data-engine="${game.engine || ''}" data-genres="${game.genre || ''}" data-gametype="${game.gametype || ''}">
+                    <a href="${gUrl}">
+                        <div class="card-thumb">
+                            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
+                                 class="grid-pitu-img" 
+                                 data-pitu="${gId}" 
+                                 alt="${gTitle}">
+                            <div class="card-type-tags">${typeTagsHTML}</div>
+                            <i class="fa-solid fa-angles-down download-icon-fa"></i> 
+                            ${badgeHTML}
+                        </div>
+                        <div class="card-info">
+                            <h3>${gTitle}</h3>
+                        </div>
+                    </a>
+                </div>
+            `;
+        }
+
+        // HÀM RENDER HIỂN THỊ CHUNG
+        function renderGridDisplay() {
+            if (isHomePage && isFiltering) {
+                // Trang chủ đang kích hoạt bộ lọc: Dựng HTML bằng JS từ data gốc
+                const itemsToShow = filteredData.slice(0, CONFIG.currentShown);
+                if (itemsToShow.length === 0) {
+                    grid.innerHTML = '<div class="no-results" style="width:100%; text-align:center; padding:40px; font-weight:bold; color:#888;">Không tìm thấy game tương thích bộ lọc!</div>';
                 } else {
-                    if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'block', 'important');
-                    if (loadMoreBtn) loadMoreBtn.style.setProperty('display', 'inline-block', 'important');
+                    let htmlContent = '';
+                    itemsToShow.forEach(game => { htmlContent += generateCardHTML(game); });
+                    grid.innerHTML = htmlContent;
+                }
+
+                // Xử lý nút Xem thêm tại trang chủ khi đang lọc
+                if (loadMoreContainer || loadMoreBtn) {
+                    if (CONFIG.currentShown >= filteredData.length) {
+                        if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
+                    } else {
+                        if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'block', 'important');
+                        if (loadMoreBtn) loadMoreBtn.style.setProperty('display', 'inline-block', 'important');
+                    }
+                }
+            } else {
+                // Trang con (Pages) HOẶC Trang chủ khi không bật lọc
+                allCards.forEach(card => card.style.setProperty('display', 'none', 'important'));
+                
+                const currentArray = isFiltering ? filteredCards : allCards;
+                const itemsToShow = currentArray.slice(0, CONFIG.currentShown);
+
+                if (itemsToShow.length === 0) {
+                    let noResultEl = grid.querySelector('.no-results');
+                    if (!noResultEl) {
+                        noResultEl = document.createElement('div');
+                        noResultEl.className = 'no-results';
+                        noResultEl.style.cssText = 'width:100%; text-align:center; padding:40px; font-weight:bold; color:#888;';
+                        noResultEl.innerText = 'Không tìm thấy game tương thích bộ lọc!';
+                        grid.appendChild(noResultEl);
+                    } else { noResultEl.style.display = 'block'; }
+                } else {
+                    const noResultEl = grid.querySelector('.no-results');
+                    if (noResultEl) noResultEl.style.display = 'none';
+                    itemsToShow.forEach(card => card.style.setProperty('display', 'block', 'important'));
+                }
+
+                // Điều khiển nút xem thêm cho trang con và trang chủ không lọc
+                if (!isHomePage) {
+                    if (loadMoreContainer || loadMoreBtn) {
+                        if (CONFIG.currentShown >= currentArray.length) {
+                            if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
+                        } else {
+                            if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'block', 'important');
+                            if (loadMoreBtn) loadMoreBtn.style.setProperty('display', 'inline-block', 'important');
+                        }
+                    }
                 }
             }
 
-            // Gọi hàm tải Lazy-load ảnh của bro nếu có
             if (typeof loadVisibleImages === 'function') {
                 try { loadVisibleImages(); } catch(e) {}
             }
         }
 
-        // Gán sự kiện click trực tiếp cho nút Xem thêm bài viết
+        // CLICK XEM THÊM CHUNG
         if (loadMoreBtn) {
             loadMoreBtn.onclick = function(e) {
                 e.preventDefault();
@@ -206,38 +252,76 @@
             };
         }
 
-        // BƯỚC 4: LOGIC BỘ LỌC ĐA ĐIỀU KIỆN (GAMETYPE + ENGINE + TAGS)
+        // HÀM LỌC CHÍNH ĐA ĐIỀU KIỆN
         function applyFilter() {
             const activeGametypes = Array.from(document.querySelectorAll('.filter-btn[data-type="gametype"].active')).map(b => b.dataset.val);
             const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
             const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
 
+            const hasActiveFilter = activeGametypes.length > 0 || activeEngines.length > 0 || activeGenres.length > 0;
             grid.classList.add('pitu-loading');
 
             setTimeout(() => {
-                filteredCards = allCards.filter(card => {
-                    const cardGametype = (card.dataset.gametype || '').toLowerCase().trim();
-                    const cardEngine = (card.dataset.engine || '').toLowerCase().trim();
-                    const cardGenresRaw = card.dataset.genres || '';
-                    const cardGenres = cardGenresRaw ? cardGenresRaw.split(',').map(s => s.trim().toLowerCase()) : [];
+                if (!hasActiveFilter) {
+                    isFiltering = false;
+                    if (isHomePage) {
+                        grid.innerHTML = originalHTML;
+                        allCards = Array.from(grid.querySelectorAll('.game-card'));
+                        if (jekyllPaginator) jekyllPaginator.style.display = 'block';
+                        if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
+                    } else {
+                        renderGridDisplay();
+                    }
+                    grid.classList.remove('pitu-loading');
+                    if (typeof loadVisibleImages === 'function') loadVisibleImages();
+                    return;
+                }
 
-                    // Thỏa mãn điều kiện lọc Gametype
-                    const gtMatch = activeGametypes.length === 0 || activeGametypes.includes(cardGametype);
-                    // Thỏa mãn điều kiện lọc Engine
-                    const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
-                    // Thỏa mãn điều kiện lọc đồng thời tất cả các Tags tích chọn
-                    const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
+                isFiltering = true;
 
-                    return gtMatch && eMatch && gMatch;
-                });
+                if (isHomePage) {
+                    if (jekyllPaginator) jekyllPaginator.style.display = 'none';
+                    filteredData = ALL_GAMES_DATA.filter(game => {
+                        const cardGametype = (game.gametype || '').toLowerCase().trim();
+                        const cardEngine = (game.engine || '').toLowerCase().trim();
+                        const gameGenreRaw = game.genre || '';
+                        const cardGenres = gameGenreRaw ? gameGenreRaw.split(',').map(s => s.trim().toLowerCase()) : [];
+
+                        const gtMatch = activeGametypes.length === 0 || activeGametypes.includes(cardGametype);
+                        const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
+                        const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
+
+                        return gtMatch && eMatch && gMatch;
+                    });
+                } else {
+                    filteredCards = allCards.filter(card => {
+                        const cardGametype = (card.dataset.gametype || '').toLowerCase().trim();
+                        const cardEngine = (card.dataset.engine || '').toLowerCase().trim();
+                        const cardGenresRaw = card.dataset.genres || '';
+                        const cardGenres = cardGenresRaw ? cardGenresRaw.split(',').map(s => s.trim().toLowerCase()) : [];
+
+                        const gtMatch = activeGametypes.length === 0 || activeGametypes.includes(cardGametype);
+                        const eMatch = activeEngines.length === 0 || activeEngines.includes(cardEngine);
+                        const gMatch = activeGenres.length === 0 || activeGenres.every(g => cardGenres.includes(g));
+
+                        return gtMatch && eMatch && gMatch;
+                    });
+                }
 
                 renderGridDisplay();
                 grid.classList.remove('pitu-loading');
             }, CONFIG.fakeLoadTime);
         }
 
-        // Thực thi kết xuất giao diện ban đầu khi vừa tải trang xong
-        renderGridDisplay();
+        // KHỞI CHẠY GIAO DIỆN
+        if (isHomePage) {
+            // Trang chủ: Mặc định hiện cấu trúc của Jekyll phân trang tĩnh, ẩn nút xem thêm JS
+            if (loadMoreContainer) loadMoreContainer.style.setProperty('display', 'none', 'important');
+            if (typeof loadVisibleImages === 'function') loadVisibleImages();
+        } else {
+            // Trang con: Hiện 15 phần tử đầu tiên bằng JS
+            renderGridDisplay();
+        }
     }
 
     if (document.readyState === 'loading') {
