@@ -145,41 +145,44 @@ layout: default
 
 <div class="main-content-wrapper" style="display: flex; gap: 20px; align-items: flex-start; max-width: 1200px; margin: 0 auto;">
 
-  <div class="game-grid" style="flex: 3;">
-    {% assign sorted_posts = paginator.posts | sort: 'date' | reverse %}
-    {% for post in sorted_posts %}
-      {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
-      
-      <div class="game-card" data-type="{{ post.gametype | downcase }}" data-genres="{{ post.genre | downcase }}">
-        <a href="{{ post.url | relative_url }}">
-          <div class="card-thumb">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
-                 class="grid-pitu-img" data-pitu="{{ game_id }}" alt="{{ post.title }}">
-            <div class="card-type-tags">
-               <span class="tag-item">{{ post.gametype }}</span>
-            </div>
-          </div>
-          <div class="card-info">
-            <h3>{{ post.namebanner }}</h3>
-          </div>
-        </a>
-      </div>
-    {% endfor %}
-  </div>
-
-  <aside class="sidebar" style="flex: 1; position: sticky; top: 20px;">
+    <div class="game-grid" style="flex: 1;">
+        {% assign sorted_posts = paginator.posts | sort: 'date' | reverse %}
+        {% for post in sorted_posts %}
+          {% assign game_id = post.url | split: '/' | last | remove: '.html' %}
+          <div class="game-card">
+            <a href="{{ post.url | relative_url }}">
+              <div class="card-thumb">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" 
+                     class="grid-pitu-img" 
+                     data-pitu="{{ game_id }}" 
+                     alt="{{ post.title }}">
     
-    <div class="filter-box">
-      <h3>GAME ENGINE</h3>
-      <div id="engine-filters"></div>
+                <div class="card-type-tags">
+                  {% for type in post.typegame %}
+                    <span class="tag-item tag-{{ type | downcase | slugify }}">{{ type }}</span>
+                  {% endfor %}
+                </div>
+    
+                <i class="fa-solid fa-angles-down download-icon-fa"></i> 
+    
+                {% if post.categories.size > 0 %}
+                  <div class="card-badge">{{ post.categories | first | replace: "-", " " }}</div>
+                {% endif %}
+              </div>
+    
+              <div class="card-info">
+                <h3>{{ post.namebanner }}</h3>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
     </div>
 
-    <div class="filter-box">
-      <h3>THỂ LOẠI VISUAL NOVEL</h3>
-      <div id="genre-filters"></div>
-    </div>
+    <aside id="genre-sidebar" style="width: 300px; flex-shrink: 0; background: #12091d; border: 1px solid #d4487f; padding: 20px; border-radius: 8px; color: white;">
+        <h3 style="margin-top: 0;">BỘ LỌC GAME</h3>
+        <div id="filter-container"></div>
+    </aside>
 
-  </aside>
 </div>
 {% if paginator.total_pages > 1 %}
 <div class="pagination">
