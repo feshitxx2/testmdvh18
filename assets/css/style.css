@@ -1336,26 +1336,3 @@ img {
         font-size: 12px;
     }
 }
-.filter-btn {
-    /* Style mặc định */
-    background: linear-gradient(to bottom, #12091d, #1b0e2a);
-    color: #ffffff;
-    border: 1px solid #333; /* Thêm tí border cho dễ nhìn */
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.filter-btn.active {
-    /* Style khi được chọn */
-    background: radial-gradient(circle, #241032, #4a1e4c, #752b62, #a43973, #d4487f);
-}
-#genre-sidebar {
-    max-height: 100px; /* Chiều cao mặc định */
-    overflow: hidden;
-    transition: max-height 0.5s ease;
-}
-
-#genre-sidebar.show-all {
-    max-height: 2000px; /* Chiều cao đủ lớn để hiện hết */
-}
