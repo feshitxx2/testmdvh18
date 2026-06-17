@@ -436,3 +436,42 @@ const backToTopBtn = document.getElementById('back-to-top');
         document.getElementById('donate-popup').style.display = 'none';
     }
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const cards = document.querySelectorAll('.game-card');
+    const container = document.getElementById('filter-container');
+    const genreSet = new Set();
+
+    // Thu thập toàn bộ tag
+    cards.forEach(card => {
+        const genres = card.getAttribute('data-genres');
+        if (genres) {
+            genres.split(',').forEach(g => genreSet.add(g.trim()));
+        }
+    });
+
+    // Tạo nút
+    Array.from(genreSet).sort().forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.innerText = g;
+        btn.onclick = function() {
+            this.classList.toggle('active');
+            filterGames();
+        };
+        container.appendChild(btn);
+    });
+
+    // Lọc game
+    function filterGames() {
+        const activeFilters = Array.from(document.querySelectorAll('.filter-btn.active')).map(b => b.innerText);
+        
+        cards.forEach(card => {
+            const cardGenres = card.getAttribute('data-genres').split(',').map(s => s.trim());
+            // Logic AND: Phải có đủ tất cả tag đang chọn
+            const isMatch = activeFilters.every(f => cardGenres.includes(f));
+            card.style.display = isMatch ? 'block' : 'none';
+        });
+    }
+});
+</script>
