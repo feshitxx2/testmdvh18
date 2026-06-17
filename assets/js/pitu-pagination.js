@@ -4,30 +4,34 @@
         currentShown: 21
     };
 
-    // Mảng lưu trữ danh sách các game đã thỏa mãn bộ lọc (filter)
     let filteredItems = [];
 
     function initPituEngine() {
+        // Kiểm tra xem database đã sẵn sàng chưa
         if (typeof PITU_DATABASE === "undefined") {
             setTimeout(initPituEngine, 200);
             return;
         }
 
-        // CHUẨN HÓA CLASS: Tìm chính xác các phần tử pitu trong HTML của bạn
+        // Lấy danh sách thẻ game
         const items = document.querySelectorAll('.pitu-item');
+        
+        // CƠ CHẾ SỬA LỖI: Nếu HTML chưa render xong thẻ game, đợi thêm 100ms rồi thử lại
+        if (items.length === 0) {
+            setTimeout(initPituEngine, 100);
+            return;
+        }
+
         const grid = document.querySelector('.pitu-grid') || document.querySelector('.game-grid') || document.querySelector('.grid'); 
         const engineContainer = document.getElementById('engine-filters');
         const genreContainer = document.getElementById('genre-filters');
-        
         const btn = document.getElementById('btn-load-more');
         const container = document.getElementById('load-more-container');
-
-        if (items.length === 0) return;
 
         const engines = new Map();
         const genres = new Map();
 
-        // Thu thập dữ liệu từ thuộc tính data- của các thẻ .pitu-item để làm bộ lọc
+        // Thu thập dữ liệu làm bộ lọc từ data-attributes
         items.forEach(item => {
             if(item.dataset.engine) {
                 const raw = item.dataset.engine.trim();
@@ -41,8 +45,11 @@
             }
         });
 
-        // Hàm tạo các nút bấm bộ lọc (Engine / Thể loại)
+        // Hàm tạo các nút bấm bộ lọc
         function createBtns(mapItems, containerFilter, type) {
+            if (!containerFilter) return; // Tránh lỗi nếu thiếu div container trong HTML
+            containerFilter.innerHTML = ''; // Xóa sạch dữ liệu cũ trước khi chèn để tránh trùng lặp
+            
             const sortedItems = Array.from(mapItems.values()).sort();
             sortedItems.forEach((displayVal, index) => {
                 const btnFilter = document.createElement('button');
@@ -51,7 +58,6 @@
                 if (index >= 15) btnFilter.style.display = 'none'; 
                 btnFilter.onclick = function() {
                     this.classList.toggle('active');
-                    // Reset số lượng hiển thị về 21 khi người dùng đổi bộ lọc
                     CONFIG.currentShown = CONFIG.itemsPerLoad; 
                     filter();
                 };
@@ -72,11 +78,11 @@
             }
         }
 
-        // Khởi tạo các nút chọn trên giao diện
+        // Tạo nút chọn hiển thị
         createBtns(engines, engineContainer, 'engine');
         createBtns(genres, genreContainer, 'genres');
 
-        // Hàm tải ảnh từ PITU_DATABASE cho những game được hiển thị công khai
+        // Hàm tải ảnh từ PITU_DATABASE
         function loadVisibleImages() {
             filteredItems.forEach((item, index) => {
                 if (index < CONFIG.currentShown) {
@@ -94,22 +100,19 @@
             });
         }
 
-        // Hàm cập nhật trạng thái hiển thị (Ẩn/Hiện game và Thanh phân trang)
+        // Hàm cập nhật trạng thái hiển thị
         function updateDisplay() {
-            // Ẩn toàn bộ danh sách gốc trước
             items.forEach(item => {
                 item.style.display = 'none';
                 item.classList.remove('is-visible');
             });
 
-            // Chỉ hiển thị các game thuộc danh sách đã lọc, giới hạn theo CONFIG.currentShown
             const itemsToShow = filteredItems.slice(0, CONFIG.currentShown);
             itemsToShow.forEach(item => {
-                item.style.display = 'flex'; // Trả về dạng flex hiển thị ban đầu của bạn
+                item.style.display = 'flex'; 
                 item.classList.add('is-visible');
             });
 
-            // Ẩn thanh phân trang (paginator) nếu số lượng hiển thị đã bao trọn danh sách game sau lọc
             if (container) {
                 container.style.display = (CONFIG.currentShown >= filteredItems.length) ? 'none' : 'block';
             }
@@ -120,7 +123,7 @@
             loadVisibleImages();
         }
 
-        // Xử lý sự kiện Cuộn vô hạn (Infinite Scroll)
+        // Cuộn vô hạn
         let isLoading = false;
         window.addEventListener('scroll', () => {
             if (!isLoading && CONFIG.currentShown < filteredItems.length) {
@@ -136,7 +139,7 @@
             }
         });
 
-        // Xử lý sự kiện bấm nút "Tải thêm" thủ công (nếu có)
+        // Bấm nút Tải thêm thủ công
         if (btn) {
             btn.onclick = function(e) {
                 e.preventDefault();
@@ -145,9 +148,8 @@
             };
         }
 
-        // Hàm xử lý Bộ lọc logic chính
+        // Hàm xử lý Bộ lọc chính
         function filter() {
-            // YÊU CẦU: Ẩn ngay thanh phân trang / paginator khi vừa kích hoạt filter
             if (container) container.style.display = 'none';
             if (btn) btn.style.display = 'none';
             
@@ -157,7 +159,6 @@
                 const activeEngines = Array.from(document.querySelectorAll('.filter-btn[data-type="engine"].active')).map(b => b.dataset.val);
                 const activeGenres = Array.from(document.querySelectorAll('.filter-btn[data-type="genres"].active')).map(b => b.dataset.val);
                 
-                // Thực hiện lọc dữ liệu dựa trên mảng items (.pitu-item)
                 filteredItems = Array.from(items).filter(item => {
                     const cardEngine = item.dataset.engine ? item.dataset.engine.toLowerCase() : '';
                     const cardGenres = item.dataset.genres ? item.dataset.genres.split(',').map(s => s.trim().toLowerCase()) : [];
@@ -168,17 +169,20 @@
                     return eMatch && gMatch;
                 });
 
-                // Cập nhật hiển thị danh sách game mới và tính toán ẩn hiện lại paginator
                 updateDisplay();
 
                 if (grid) grid.classList.remove('loading-grid');
             }, 200);
         }
 
-        // Chạy kiểm tra bộ lọc lần đầu tiên để phân trang trang chủ ngay khi tải xong
+        // Chạy filter phát đầu tiên
         filter();
     }
 
-    // Đợi trang tải hoàn chỉnh để đảm bảo PITU_DATABASE chuẩn bị xong dữ liệu banner
-    window.addEventListener('load', initPituEngine);
+    // Kích hoạt khi trang tải xong hoàn toàn
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPituEngine);
+    } else {
+        initPituEngine();
+    }
 })();
