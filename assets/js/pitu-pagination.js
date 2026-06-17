@@ -260,3 +260,23 @@
         initPituEngine();
     }
 })();
+async function fetchAndRenderHomeRatings() {
+    const ratingElements = document.querySelectorAll('[data-rating-id]');
+    if (ratingElements.length === 0 || typeof supabase === "undefined") return;
+
+    // Lấy hết ID game đang hiển thị trên màn hình
+    const ids = Array.from(ratingElements).map(el => el.dataset.ratingId);
+
+    // Truy vấn hàng loạt dữ liệu của các ID này từ Supabase để tối ưu hiệu năng
+    let { data, error } = await supabase.from('game_ratings').select('pitu_id, total_stars, total_votes').in('pitu_id', ids);
+
+    if (data) {
+        data.forEach(row => {
+            const el = document.querySelector(`[data-rating-id="${row.pitu_id}"]`);
+            if (el && row.total_votes > 0) {
+                const avg = (row.total_stars / row.total_votes).toFixed(1);
+                el.innerHTML = `★ ${avg} <span style="color:#888;">(${row.total_votes})</span>`;
+            }
+        });
+    }
+}
