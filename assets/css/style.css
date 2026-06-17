@@ -1343,14 +1343,7 @@ img {
 }
 
 .main-content-wrapper {
-    margin-top: 5px;
-}
-
-.game-card {
-    background: #1b0e2a;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.2s;
+    margin-top: 20px;
 }
 
 .filter-box {
@@ -1374,7 +1367,7 @@ img {
 }
 .filter-btn.active { background: #d4487f; }
 .game-grid {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.4s ease;
 }
 .loading-grid {
     opacity: 0.4;
