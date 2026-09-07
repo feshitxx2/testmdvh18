@@ -457,13 +457,6 @@ const backToTopBtn = document.getElementById('back-to-top');
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    function showError(text) {
-        if (errorEl) {
-            errorEl.innerText = text;
-            errorEl.style.display = 'inline';
-        }
-    }
-
     async function isIncognitoMode() {
         try {
             localStorage.setItem('test_incognito', '1');
@@ -494,16 +487,14 @@ const backToTopBtn = document.getElementById('back-to-top');
             const isIncognito = await isIncognitoMode();
 
             if (isIncognito) {
-                // Ẩn danh -> Lưu cờ miễn quảng cáo cho phiên này
+                // Ẩn danh: Lưu cờ bỏ qua cho phiên này
                 localStorage.setItem('incognito_bypassed', 'true');
             } else {
-                // Tab thường -> Lưu thời gian mở khóa 7 ngày & Reset bộ đếm 10 lần
-                const currentTime = Date.now().toString();
-                localStorage.setItem('shopee_click_time', currentTime);
+                // Tab thường: Lưu thời gian 7 ngày & Reset bộ đếm
+                localStorage.setItem('shopee_click_time', Date.now().toString());
                 localStorage.setItem('download_click_count', '0');
             }
 
-            // Mở link Shopee ủng hộ
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
         };
