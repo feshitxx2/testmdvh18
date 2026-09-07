@@ -1,3 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-K15TLSNWWT');
+</script>   
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đang Chuyển Hướng An Toàn... | MDVH18</title>
+<style>
+    body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+    .box { text-align: center; background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(215, 155, 187, 0.2); max-width: 400px; width: 90%; }
+    .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #f78f90; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    #timer { font-size: 3em; color: #d79bbb; font-weight: bold; margin: 10px 0; }
+    .btn-manual, .btn-fast { display: inline-block; background: #f78f90; color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; transition: 0.3s; cursor: pointer; border: none; font-family: inherit; }
+    .btn-manual { display: none; }
+    .btn-fast { background: rgba(255, 255, 255, 0.1); border: 1px solid #f78f90; font-size: 0.9em; }
+    .btn-manual:hover, .btn-fast:hover { background: #fff; color: #f78f90; box-shadow: 0 0 15px #f78f90; }
+    .incognito-notice { background: rgba(255, 193, 7, 0.2); border: 1px dashed #ffc107; color: #ffe082; padding: 10px 14px; border-radius: 10px; font-size: 0.9em; margin-bottom: 15px; display: none; font-weight: bold; }
+    .toast-custom { position: fixed; bottom: 30px; right: 30px; background: #1a1131; color: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10000; font-family: "Segoe UI", sans-serif; max-width: 320px; animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="box" id="main-box">
+<div class="loader"></div>
+<div id="incognito-alert" class="incognito-notice">🕵️ Phát hiện chế độ ẩn danh!</div>
+<h3>HỆ THỐNG ĐANG KIỂM TRA</h3>
+<p>Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.</p>
+<div id="timer">3</div>
+<button id="fast-link" class="btn-fast">TIẾP TỤC NGAY</button>
+<a id="manual-link" class="btn-manual" href="#">NHẤN VÀO ĐÂY NẾU KHÔNG TỰ CHUYỂN</a>
+</div>
+
 <script>
 (function() {
     const shopeeLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
@@ -131,3 +172,5 @@
     init();
 })();
 </script>
+</body>
+</html>
