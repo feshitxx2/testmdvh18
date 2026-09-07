@@ -23,17 +23,16 @@
         .btn-manual { display: none; }
         .btn-fast { background: rgba(255, 255, 255, 0.1); border: 1px solid #f78f90; font-size: 0.9em; }
         .btn-manual:hover, .btn-fast:hover { background: #fff; color: #f78f90; box-shadow: 0 0 15px #f78f90; }
+        .incognito-notice { background: rgba(255, 193, 7, 0.15); border: 1px dashed #ffc107; color: #ffe082; padding: 8px 12px; border-radius: 10px; font-size: 0.85em; margin-bottom: 15px; display: none; }
         
         .toast-custom { position: fixed; bottom: 30px; right: 30px; background: #1a1131; color: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10000; font-family: "Segoe UI", sans-serif; max-width: 320px; animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        
-        #pixeldrain-toast a:hover { background: #fff !important; color: #f78f90 !important; }
-        #terabox-toast a:hover { background: #fff !important; color: #54b5f5 !important; }
     </style>
 </head>
 <body>
     <div class="box" id="main-box">
         <div class="loader"></div>
+        <div id="incognito-alert" class="incognito-notice">🕵️ Bạn đang truy cập ở chế độ ẩn danh</div>
         <h3>HỆ THỐNG ĐANG KIỂM TRA</h3>
         <p>Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.</p>
         <div id="timer">4</div>
@@ -60,7 +59,16 @@
             return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
         }
 
-        // Đọc dữ liệu an toàn (thử localStorage trước, nếu lỗi thì dùng cookie/session)
+        function isIncognitoMode() {
+            try {
+                localStorage.setItem('__test_incognito', '1');
+                localStorage.removeItem('__test_incognito');
+                return false;
+            } catch (e) {
+                return true;
+            }
+        }
+
         function safeGet(key) {
             try {
                 return localStorage.getItem(key) || sessionStorage.getItem(key);
@@ -69,7 +77,6 @@
             }
         }
 
-        // Ghi dữ liệu an toàn
         function safeSet(key, val) {
             try { localStorage.setItem(key, val); } catch (e) {}
             try { sessionStorage.setItem(key, val); } catch (e) {}
@@ -87,6 +94,11 @@
                 try { sessionStorage.removeItem('shopee_click_time'); } catch(e){}
                 return false;
             }
+        }
+
+        if (isIncognitoMode()) {
+            const alertBox = document.getElementById('incognito-alert');
+            if (alertBox) alertBox.style.display = 'block';
         }
 
         let shouldRedirectToShopee = false;
