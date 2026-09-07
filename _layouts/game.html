@@ -835,10 +835,10 @@ document.addEventListener('click', function(e) {
         return null;
     }
 
-    // Kiểm tra xem có phải thiết bị di động (điện thoại/máy tính bảng) hay không
+    // Kiểm tra thiết bị Điện thoại
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Kiểm tra xem có đang ở Tab ẩn danh hay không
+    // Kiểm tra Tab Ẩn Danh
     function checkIncognito() {
         try {
             if (!window.indexedDB) return true;
@@ -849,7 +849,7 @@ document.addEventListener('click', function(e) {
     }
     const isIncognito = checkIncognito();
 
-    // 1. KIỂM TRA ĐIỀU KIỆN MIỄN QUẢNG CÁO (BYPASS)
+    // 1. KIỂM TRA TRẠNG THÁI MỞ KHÓA (BYPASS)
     const savedTime = localStorage.getItem('shopee_click_time');
     let isBypassed = false;
     if (savedTime) {
@@ -861,38 +861,41 @@ document.addEventListener('click', function(e) {
         }
     }
     const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-    const isAppBypassed = localStorage.getItem('shopee_app_opened') === 'true';
 
-    // Xử lý quyền miễn quảng cáo:
-    // - Tab thường: Ấn ủng hộ -> Miễn quảng cáo.
-    // - Tab ẩn danh trên Điện thoại: Nhảy sang App Shopee thành công -> Miễn quảng cáo.
-    // - Tab ẩn danh trên Web (Máy tính): Dù ấn ủng hộ vẫn KHÔNG được miễn.
-    if (!isIncognito && (isBypassed || isCookieBypassed)) {
-        return; // Tab thường đã ủng hộ -> Bỏ qua quảng cáo
-    }
+    // Đã từng nhảy sang App Shopee trên điện thoại chưa
+    const isAppOpened = localStorage.getItem('shopee_app_opened') === 'true';
 
-    if (isIncognito && isMobile && isAppBypassed) {
-        return; // Tab ẩn danh điện thoại đã mở App thành công -> Bỏ qua quảng cáo
+    // === XỬ LÝ LOGIC MIỄN QUẢNG CÁO ===
+    if (isMobile) {
+        // TRÊN ĐIỆN THOẠI: Đã nhảy sang App Shopee thành công hoặc đã ấn Ủng hộ -> MIỄN QUẢNG CÁO
+        if (isAppOpened || isBypassed || isCookieBypassed) {
+            return;
+        }
+    } else {
+        // TRÊN MÁY TÍNH (WEB):
+        // - Tab ẩn danh: KỂ CẢ BẤM ỦNG HỘ VẪN BỊ QUẢNG CÁO (không thoát)
+        // - Tab thường: Bấm ủng hộ thì mới được miễn
+        if (!isIncognito && (isBypassed || isCookieBypassed)) {
+            return;
+        }
     }
 
     // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
-    // Lấy mốc target click ngẫu nhiên đã lưu, nếu chưa có thì tạo mới (từ 3 đến 5)
     let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
     if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
         targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3; // Random 3, 4 hoặc 5
         localStorage.setItem('shopee_target_clicks', targetClicks.toString());
     }
 
-    // Lấy số click hiện tại từ URL Parameter (để không mất lượt trong Tab ẩn danh) hoặc LocalStorage
     const urlParams = new URLSearchParams(window.location.search);
     let currentClick = parseInt(urlParams.get('shopee_cnt') || localStorage.getItem('download_click_count') || '0', 10) + 1;
 
     if (currentClick >= targetClicks) {
-        // ĐỦ SỐ CLICK -> NỔ QUẢNG CÁO SHOPEE
+        // ĐỦ CLICK -> BẬT SHOPEE
         localStorage.setItem('download_click_count', '0');
-        localStorage.removeItem('shopee_target_clicks'); // Reset mốc random cho lần sau
+        localStorage.removeItem('shopee_target_clicks');
 
-        // Nếu là điện thoại -> Đánh dấu đã nhảy sang App thành công
+        // Nếu là điện thoại thì lưu dấu đã mở App thành công để các lần sau không bị quảng cáo nữa
         if (isMobile) {
             localStorage.setItem('shopee_app_opened', 'true');
         }
@@ -900,12 +903,11 @@ document.addEventListener('click', function(e) {
         e.preventDefault();
         window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
 
-        // Làm sạch URL
         const cleanUrl = new URL(link.href);
         cleanUrl.searchParams.delete('shopee_cnt');
         window.location.href = cleanUrl.toString();
     } else {
-        // CHƯA ĐỦ SỐ CLICK -> LƯU LƯỢT BẤM VÀ CỘNG VÀO LINK
+        // CHƯA ĐỦ CLICK -> LƯU VÀO URL ĐỂ DÙNG CHO CẢ TAB ẨN DANH
         localStorage.setItem('download_click_count', currentClick.toString());
 
         const nextUrl = new URL(link.href);
