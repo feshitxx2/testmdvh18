@@ -829,29 +829,41 @@ document.addEventListener('click', function(e) {
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
+        
+        // 1. Kiểm tra tham số Mở Khóa trên URL (Cứu cánh duy nhất cho Tab Ẩn Danh)
+        const urlParams = new URLSearchParams(window.location.search);
+        const isUrlUnlocked = urlParams.get('unlocked') === 'true';
+
+        if (isUrlUnlocked) {
+            // Đã bấm ủng hộ và có đuôi URL -> Lưu tạm vào sessionStorage phiên này
+            sessionStorage.setItem('incognito_unlocked_session', 'true');
         }
 
+        const isSessionUnlocked = sessionStorage.getItem('incognito_unlocked_session') === 'true';
+
+        // 2. Kiểm tra bộ nhớ Tab Thường (7 ngày)
         const savedTime = localStorage.getItem('shopee_click_time');
-        let isBypassed = false;
+        let isLocalBypassed = false;
         if (savedTime) {
             const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
             if (diffDays < 7) {
-                isBypassed = true;
+                isLocalBypassed = true;
             } else {
                 localStorage.removeItem('shopee_click_time');
             }
         }
 
-        const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true' || getCookie('incognito_bypassed') === 'true';
+        // Bỏ qua quảng cáo nếu phát hiện bất kỳ dấu hiệu mở khóa nào
+        if (isUrlUnlocked || isSessionUnlocked || isLocalBypassed) {
+            return; // Cho tải thẳng, không đếm, không bật Shopee
+        }
 
-        if (isBypassed || isCookieBypassed || isIncognitoBypassed) {
-            return;
+        // 3. Nếu CHƯA MỞ KHÓA -> Áp dụng logic đếm click bình thường
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
         }
 
         const isFirstClickInSession = !getCookie('session_started');
