@@ -48,6 +48,14 @@
 
     // 1. Kiểm tra Ẩn danh
     async function checkIncognito() {
+        try {
+            localStorage.setItem('test_incognito', '1');
+            if (localStorage.getItem('test_incognito') !== '1') return true;
+            localStorage.removeItem('test_incognito');
+        } catch (err) {
+            return true;
+        }
+
         if ('storage' in navigator && 'estimate' in navigator.storage) {
             try {
                 const { quota } = await navigator.storage.estimate();
@@ -59,27 +67,20 @@
         return false;
     }
 
-    // 2. Kiểm tra Bypass 7 ngày chuẩn xác
+    // 2. Kiểm tra Bypass 7 ngày
     function check7DaysBypass() {
         try {
             const savedTime = localStorage.getItem('shopee_click_time');
-            if (!savedTime) {
-                console.log("-> KHÔNG TÌM THẤY TIMESTAMPS BYPASS");
-                return false;
-            }
+            if (!savedTime) return false;
 
             const now = Date.now();
             const clickTime = Number(savedTime);
             const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
             const diff = now - clickTime;
 
-            console.log("Thời gian đã trôi qua (ms):", diff);
-
             if (diff >= 0 && diff < sevenDaysInMs) {
-                console.log("-> BẮT ĐƯỢC BYPASS 7 NGÀY (KHÔNG NHẢY SHOPEE)");
                 return true;
             } else {
-                console.log("-> BYPASS ĐÃ HẾT HẠN");
                 localStorage.removeItem('shopee_click_time');
                 return false;
             }
@@ -92,26 +93,32 @@
         const isIncognito = await checkIncognito();
         const alertBox = document.getElementById('incognito-alert');
         const isBypassed = check7DaysBypass();
+        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
 
         let shouldRedirectToShopee = false;
 
+        // XỬ LÝ LOGIC QUẢNG CÁO
         if (isIncognito) {
-            if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; // Ẩn danh: BẮT BUỘC NHẢY
-            console.log("Trạng thái: ẨN DANH -> Bắt buộc nhảy Shopee");
+            if (isIncognitoBypassed) {
+                // Ẩn danh + Đã click ủng hộ ở trang chủ -> BỎ QUẢNG CÁO
+                shouldRedirectToShopee = false;
+            } else {
+                // Ẩn danh + Chưa ủng hộ -> BẮT BUỘC NHẢY
+                if (alertBox) alertBox.style.display = 'block';
+                shouldRedirectToShopee = true;
+            }
         } else if (isBypassed) {
-            shouldRedirectToShopee = false; // Đã click trang chủ: TẮT NHẢY 100%
-            console.log("Trạng thái: ĐÃ BYPASS 7 NGÀY -> Tắt nhảy Shopee");
+            // Tab thường + Đã bypass 7 ngày -> TẮT NHẢY
+            shouldRedirectToShopee = false;
         } else {
-            // Chưa click trang chủ: Đếm 10 lần
-            let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
-            console.log("Trạng thái: THƯỜNG -> Lần tải thứ " + count + "/10");
+            // Tab thường + Chưa ủng hộ -> Đếm đúng 10 lần
+            let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
             
             if (count >= 10) {
-                localStorage.setItem('test_download_count', '0');
+                localStorage.setItem('download_click_count', '0');
                 shouldRedirectToShopee = true;
             } else {
-                localStorage.setItem('test_download_count', count.toString());
+                localStorage.setItem('download_click_count', count.toString());
                 shouldRedirectToShopee = false;
             }
         }
@@ -135,12 +142,7 @@
 
                 const doRedirect = () => {
                     if (shouldRedirectToShopee) {
-                        const shopeeAnchor = document.createElement('a');
-                        shopeeAnchor.href = getRandomShopeeLink();
-                        shopeeAnchor.target = '_blank';
-                        shopeeAnchor.rel = 'noopener noreferrer';
-                        document.body.appendChild(shopeeAnchor);
-                        shopeeAnchor.click();
+                        window.open(getRandomShopeeLink(), '_blank');
                     }
                     window.location.href = targetUrl;
                 };
