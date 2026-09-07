@@ -825,13 +825,10 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Bỏ qua nút ủng hộ
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        
-        // 1. Hàm đọc Cookie Session
         function getCookie(name) {
             const value = `; ${document.cookie}`;
             const parts = value.split(`; ${name}=`);
@@ -839,7 +836,6 @@ document.addEventListener('click', function(e) {
             return null;
         }
 
-        // 2. Kiểm tra trạng thái Mở Khóa 7 Ngày (Tab Thường)
         const savedTime = localStorage.getItem('shopee_click_time');
         let isBypassed = false;
         if (savedTime) {
@@ -851,33 +847,22 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // 3. Kiểm tra trạng thái Mở Khóa Phiên (Tab Ẩn Danh)
+        const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
         const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true' || getCookie('incognito_bypassed') === 'true';
 
-        // Nếu ĐÃ BẤM NÚT ỦNG HỘ -> Cho qua luôn, không nhảy Shopee nữa
-        if (isBypassed || isIncognitoBypassed) {
-            return; 
+        if (isBypassed || isCookieBypassed || isIncognitoBypassed) {
+            return;
         }
 
-        // 4. LUỒNG XỬ LÝ CHÍNH
-        // Kiểm tra xem đây có phải lượt click ĐẦU TIÊN của phiên này không
         const isFirstClickInSession = !getCookie('session_started');
-
         let shouldShopee = false;
 
         if (isFirstClickInSession) {
-            // Đánh dấu đã bắt đầu phiên (Session Cookie này tự mất khi đóng tab/trình duyệt)
             document.cookie = "session_started=true; path=/";
-            
-            // Lượt click đầu tiên -> BẮT BUỘC nhảy Shopee ngay (Dành cho Ẩn danh & Lượt đầu Tab thường)
             shouldShopee = true;
-            
-            // Khoản đếm cho Tab thường cũng được khởi tạo
             localStorage.setItem('download_click_count', '1');
         } else {
-            // Từ lượt click thứ 2 trở đi trong cùng phiên -> Chuyển sang chế độ đếm 10 lần (Tab thường)
             let count = parseInt(localStorage.getItem('download_click_count') || '1', 10) + 1;
-            
             if (count >= 10) {
                 localStorage.setItem('download_click_count', '0');
                 shouldShopee = true;
@@ -887,7 +872,6 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // 5. Mở Shopee & Chuyển Trang
         if (shouldShopee) {
             e.preventDefault();
             window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
