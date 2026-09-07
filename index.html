@@ -457,43 +457,29 @@ const backToTopBtn = document.getElementById('back-to-top');
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    async function isIncognitoMode() {
-        try {
-            localStorage.setItem('test_incognito', '1');
-            if (localStorage.getItem('test_incognito') !== '1') return true;
-            localStorage.removeItem('test_incognito');
-        } catch (err) {
-            return true;
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
         }
-
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            try {
-                const { quota } = await navigator.storage.estimate();
-                if (quota < 40000000) return true;
-            } catch (e) {
-                return false;
-            }
-        }
-        return false;
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
 
     if (btn) {
-        btn.onclick = async function(e) {
+        btn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             if (errorEl) errorEl.style.display = 'none';
 
-            const isIncognito = await isIncognitoMode();
+            localStorage.setItem('shopee_click_time', Date.now().toString());
+            localStorage.setItem('download_click_count', '0');
+            localStorage.setItem('incognito_bypassed', 'true');
 
-            if (isIncognito) {
-                // Ẩn danh: Lưu cờ bỏ qua cho phiên này
-                localStorage.setItem('incognito_bypassed', 'true');
-            } else {
-                // Tab thường: Lưu thời gian 7 ngày & Reset bộ đếm
-                localStorage.setItem('shopee_click_time', Date.now().toString());
-                localStorage.setItem('download_click_count', '0');
-            }
+            setCookie('shopee_unlocked', 'true', 7);
+            setCookie('incognito_bypassed', 'true', 7);
 
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
