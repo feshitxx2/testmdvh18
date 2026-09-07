@@ -823,62 +823,42 @@ stars.forEach(star => {
 loadRating();
   </script>
  <script>
-document.addEventListener('click', async function(e) {
+
+document.addEventListener('click', function(e) {
+
+    // Tìm thẻ <a> gần nhất được click
+
     const link = e.target.closest('a');
+
+    
+
+    // Nếu không phải thẻ <a> hoặc không có href thì bỏ qua
+
     if (!link || !link.href) return;
 
-    if (link.href.includes('/testmdvh18/download.html?url=')) {
-        e.preventDefault(); // Tạm dừng chuyển hướng để check async
 
-        // 1. Kiểm tra Ẩn danh chuẩn 100% bằng Storage Quota
-        async function checkIncognitoReal() {
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                try {
-                    const { quota } = await navigator.storage.estimate();
-                    // Ẩn danh trên Chrome/Edge/Cốc Cốc giới hạn Quota rất nhỏ (< 400MB)
-                    if (quota < 400000000) return true; 
-                } catch (err) {
-                    return false;
-                }
-            }
-            return false;
-        }
 
-        const isIncognito = await checkIncognitoReal();
+    // Kiểm tra nếu link dẫn tới trang download.html kèm tham số url
 
-        // 2. Kiểm tra Bypass 7 ngày
-        const savedTime = localStorage.getItem('shopee_click_time');
-        const now = Date.now();
-        const isBypassed = savedTime && ((now - Number(savedTime)) < 7 * 24 * 60 * 60 * 1000);
+    if (link.href.includes('download.html?url=')) {
 
-        let shouldJumpShopee = false;
+        e.preventDefault(); // Chặn hành vi mở link mặc định
 
-        if (isBypassed) {
-            // Đã ủng hộ: Dù Ẩn danh hay Thường đều KHÔNG nhảy
-            shouldJumpShopee = false;
-        } else if (isIncognito) {
-            // Chưa ủng hộ + Ẩn danh: BẮT BUỘC NHẢY NGAY LẦN 1
-            shouldJumpShopee = true;
-        } else {
-            // Chưa ủng hộ + Chế độ Thường: Đếm 10 lần
-            let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
-            if (count >= 10) {
-                localStorage.setItem('test_download_count', '0');
-                shouldJumpShopee = true;
-            } else {
-                localStorage.setItem('test_download_count', count.toString());
-                shouldJumpShopee = false;
-            }
-        }
 
-        // 3. Thực thi
-        if (shouldJumpShopee) {
-            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-        }
 
-        // Chuyển tab hiện tại sang link download
+        // 1. Tải Shopee ở tab mới (Được duyệt 100% vì xuất phát từ click của user)
+
+        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+
+
+
+        // 2. Chuyển tab hiện tại tới trang download
+
         window.location.href = link.href;
+
     }
+
 });
+
 </script>
 </html>
