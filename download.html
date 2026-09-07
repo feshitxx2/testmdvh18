@@ -32,7 +32,7 @@
 <body>
     <div class="box" id="main-box">
         <div class="loader"></div>
-        <div id="incognito-alert" class="incognito-notice">🕵️ Bạn đang ở chế độ ẩn danh</div>
+        <div id="incognito-alert" class="incognito-notice">🕵️ Phát hiện chế độ ẩn danh!</div>
         <h3>HỆ THỐNG ĐANG KIỂM TRA</h3>
         <p>Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.</p>
         <div id="timer">4</div>
@@ -59,16 +59,33 @@
             return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
         }
 
-        // Nhận diện ẩn danh chính xác 100% bằng API Quota
-        function detectIncognito() {
+        // Kiểm tra ẩn danh đa tầng (Storage Quota + Safari/Firefox Fallback + FileSystem)
+        function checkIncognito() {
             return new Promise((resolve) => {
+                const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+                if (fs) {
+                    fs(window.TEMPORARY, 100, () => resolve(false), () => resolve(true));
+                    return;
+                }
+                
                 if ('storage' in navigator && 'estimate' in navigator.storage) {
                     navigator.storage.estimate().then(({ quota }) => {
-                        // Dung lượng lưu trữ bị giới hạn rất thấp (dưới 120MB) ở tab ẩn danh
-                        resolve(quota < 120000000);
+                        // Trình duyệt ẩn danh Chromium giới hạn quota thường dưới 400MB (hoặc 10% RAM)
+                        if (quota < 400000000) {
+                            resolve(true);
+                        } else {
+                            resolve(false);
+                        }
                     }).catch(() => resolve(false));
-                } else {
-                    resolve(false);
+                    return;
+                }
+
+                try {
+                    const db = indexedDB.open("test");
+                    db.onerror = function() { resolve(true); };
+                    db.onsuccess = function() { resolve(false); };
+                } catch (e) {
+                    resolve(true);
                 }
             });
         }
@@ -97,14 +114,14 @@
         }
 
         async function init() {
-            const isIncognito = await detectIncognito();
+            const isIncognito = await checkIncognito();
             const alertBox = document.getElementById('incognito-alert');
 
             let shouldRedirectToShopee = false;
 
             if (isIncognito) {
                 if (alertBox) alertBox.style.display = 'block';
-                shouldRedirectToShopee = true; // Ẩn danh = Bắt buộc nhảy Shopee
+                shouldRedirectToShopee = true; 
             } else if (!isShopeeBypassed()) {
                 let downloadCount = parseInt(safeGet('global_download_count') || '0');
                 downloadCount++;
@@ -135,6 +152,7 @@
                         targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                     }
 
+                    // Ép buộc ghi đè targetUrl nếu là Ẩn danh hoặc đếm đủ 25 lượt
                     if (shouldRedirectToShopee) {
                         targetUrl = getRandomShopeeLink();
                     }
@@ -152,17 +170,20 @@
                         fastBtn.onclick = () => redirectNow(targetUrl);
                     }
 
-                    if (targetUrl.includes('drive.google.com')) {
+                    // Nếu targetUrl bị đè thành Shopee thì bỏ qua phần check Drive để không redirect sớm
+                    if (!shouldRedirectToShopee && targetUrl.includes('drive.google.com')) {
                         redirectNow(targetUrl);
                         return; 
                     }
 
-                    if (targetUrl.includes('pixeldrain.com')) {
-                        showToast('🚀', 'Phát hiện Pixeldrain!', 'Giới hạn 6GB/ngày. Xem FAQ để biết mẹo tải.', '#f78f90');
-                    } else if (/terabox|1024tera|teraboxapp/.test(targetUrl)) {
-                        showToast('☁️', 'Phát hiện Terabox!', 'Nên dùng App hoặc đăng nhập để tải nhanh hơn.', '#54b5f5');
-                    } else if (targetUrl.includes('buzzheavier.com')) {
-                        showToast('⚡', 'Phát hiện Buzzheavier!', 'Dịch vụ tốc độ cao. Nếu lỗi hãy tắt VPN.', '#ffeb3b');
+                    if (!shouldRedirectToShopee) {
+                        if (targetUrl.includes('pixeldrain.com')) {
+                            showToast('🚀', 'Phát hiện Pixeldrain!', 'Giới hạn 6GB/ngày. Xem FAQ để biết mẹo tải.', '#f78f90');
+                        } else if (/terabox|1024tera|teraboxapp/.test(targetUrl)) {
+                            showToast('☁️', 'Phát hiện Terabox!', 'Nên dùng App hoặc đăng nhập để tải nhanh hơn.', '#54b5f5');
+                        } else if (targetUrl.includes('buzzheavier.com')) {
+                            showToast('⚡', 'Phát hiện Buzzheavier!', 'Dịch vụ tốc độ cao. Nếu lỗi hãy tắt VPN.', '#ffeb3b');
+                        }
                     }
 
                     let timeLeft = 3;
