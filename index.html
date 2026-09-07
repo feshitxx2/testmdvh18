@@ -490,6 +490,8 @@ const backToTopBtn = document.getElementById('back-to-top');
     if (btn) {
         btn.onclick = async function(e) {
             e.preventDefault();
+            e.stopPropagation(); // Ngăn sự kiện lan ra ngoài (tránh đụng độ với Script 1)
+
             if (errorEl) errorEl.style.display = 'none';
 
             const isIncognito = await isIncognitoMode();
@@ -502,7 +504,7 @@ const backToTopBtn = document.getElementById('back-to-top');
             // GHI DỮ LIỆU BYPASS (Lưu Timestamp chính xác)
             const currentTime = Date.now().toString();
             localStorage.setItem('shopee_click_time', currentTime);
-            localStorage.setItem('test_download_count', '0'); // Reset bộ đếm về 0
+            localStorage.setItem('test_download_count', '0');
 
             console.log("Đã lưu shopee_click_time:", currentTime);
 
