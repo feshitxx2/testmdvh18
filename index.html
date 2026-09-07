@@ -79,6 +79,7 @@ layout: default
             <li><a href="https://mdvh18.github.io/pages/pc/">PC</a></li>
             <li><a href="https://mdvh18.github.io/pages/apk/">Android</a></li>
             <li><a href="https://mdvh18.github.io/pages/all/">All Game</a></li>
+            <li><a href="#" id="shopee-homepage-btn">Link Quảng Cáo</a></li>
             <li><a href="https://www.facebook.com/profile.php?id=61575869116469">Fanpage</a></li>
         </ul>
     <div class="nav-search">
@@ -448,4 +449,64 @@ const backToTopBtn = document.getElementById('back-to-top');
       }{% unless forloop.last %},{% endunless %}
     {% endfor %}
   ];
+</script>
+<script>
+(function() {
+    const shopeeHomepageLinks = [
+        "https://shope.ee/link1",
+        "https://shope.ee/link2",
+        "https://shope.ee/link3",
+        "https://shope.ee/link4",
+        "https://shope.ee/link5",
+        "https://shope.ee/link6",
+        "https://shope.ee/link7",
+        "https://shope.ee/link8",
+        "https://shope.ee/link9",
+        "https://shope.ee/link10"
+    ];
+
+    // Kiểm tra chế độ ẩn danh / Chặn lưu trữ
+    function checkIncognito() {
+        return new Promise((resolve) => {
+            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+            if (!fs) {
+                try {
+                    localStorage.setItem('test_storage', '1');
+                    localStorage.removeItem('test_storage');
+                    resolve(false);
+                } catch (e) {
+                    resolve(true);
+                }
+            } else {
+                fs(window.TEMPORARY, 100, () => resolve(false), () => resolve(true));
+            }
+        });
+    }
+
+    const btn = document.getElementById('shopee-homepage-btn');
+    if (btn) {
+        btn.onclick = async function(e) {
+            e.preventDefault();
+
+            const isIncognito = await checkIncognito();
+            if (isIncognito) {
+                alert("Không thành công! Bạn đang dùng chế độ ẩn danh hoặc chặn lưu trữ data. Vui lòng tắt ẩn danh/chặn quảng cáo và nhấp lại.");
+                return;
+            }
+
+            try {
+                // Lưu thời gian click để có hiệu lực 7 ngày
+                localStorage.setItem('shopee_click_time', new Date().getTime().toString());
+                // Reset lại bộ đếm lượt tải
+                localStorage.setItem('global_download_count', '0');
+
+                // Lấy random link Shopee và chuyển hướng
+                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+                window.open(randomLink, '_blank');
+            } catch (err) {
+                alert("Không thành công! Vui lòng tắt trình chặn quảng cáo/bảo mật cookie và thử lại.");
+            }
+        };
+    }
+})();
 </script>
