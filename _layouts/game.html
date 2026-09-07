@@ -821,39 +821,61 @@ stars.forEach(star => {
 loadRating();
   </script>
 <script>
-// Hàm đọc giá trị Cookie
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return null;
-}
-
 document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
+    // Bỏ qua nếu click trúng nút ủng hộ
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        const isUnlocked = getCookie('shopee_unlocked');
-        
-        // Nếu chưa ủng hộ (hoặc vừa xóa cookie) -> Xử lý đếm 10 lần
-        if (!isUnlocked) {
-            let count = parseInt(getCookie('download_click_count') || '0', 10);
-            count++;
+        // Kiểm tra chế độ ẩn danh nhanh
+        let isIncognito = false;
+        try {
+            localStorage.setItem('test_incognito', '1');
+            if (localStorage.getItem('test_incognito') !== '1') isIncognito = true;
+            localStorage.removeItem('test_incognito');
+        } catch (err) {
+            isIncognito = true;
+        }
 
-            if (count >= 10) {
-                // Đủ 10 lần click -> Xóa đếm, bật Shopee
-                document.cookie = "download_click_count=0; path=/";
-                e.preventDefault();
-                window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-                window.location.href = link.href;
+        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
+        const savedTime = localStorage.getItem('shopee_click_time');
+        
+        let isBypassed = false;
+        if (savedTime) {
+            const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+            if (diffDays < 7) {
+                isBypassed = true;
             } else {
-                // Chưa đủ 10 lần -> Tăng bộ đếm trong Cookie
-                document.cookie = `download_click_count=${count}; path=/`;
+                localStorage.removeItem('shopee_click_time');
             }
+        }
+
+        let shouldShopee = false;
+
+        if (isIncognito) {
+            // Ẩn danh: chưa ủng hộ -> 1 click 1 quảng cáo ngay
+            shouldShopee = !isIncognitoBypassed;
+        } else {
+            // Tab thường: chưa ủng hộ -> đếm 10 lần
+            if (!isBypassed) {
+                let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
+                if (count >= 10) {
+                    localStorage.setItem('download_click_count', '0');
+                    shouldShopee = true;
+                } else {
+                    localStorage.setItem('download_click_count', count.toString());
+                    shouldShopee = false;
+                }
+            }
+        }
+
+        if (shouldShopee) {
+            e.preventDefault();
+            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+            window.location.href = link.href;
         }
     }
 });
