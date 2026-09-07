@@ -7,6 +7,7 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
+
   gtag('config', 'G-K15TLSNWWT');
 </script>   
 <meta charset="UTF-8">
@@ -46,17 +47,17 @@
         return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
     }
 
-    // Nhận diện ẩn danh chính xác trên Chromium
-    function checkIncognito() {
-        return new Promise((resolve) => {
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                navigator.storage.estimate().then(({ quota }) => {
-                    resolve(quota < 1200000000); // Ngưỡng dung lượng chuẩn ẩn danh
-                }).catch(() => resolve(false));
-            } else {
-                resolve(false);
+    // Kiểm tra ẩn danh dựa trên Quota dung lượng
+    async function checkIncognito() {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            try {
+                const { quota } = await navigator.storage.estimate();
+                return quota < 400000000; // Ngưỡng 400MB chuẩn xác
+            } catch (e) {
+                return false;
             }
-        });
+        }
+        return false;
     }
 
     function safeGet(key) {
@@ -72,7 +73,14 @@
         const bypassTime = safeGet('shopee_click_time');
         if (!bypassTime) return false;
         const now = new Date().getTime();
-        return (now - parseInt(bypassTime)) < (7 * 24 * 60 * 60 * 1000);
+        const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+        if ((now - parseInt(bypassTime)) < sevenDaysInMs) {
+            return true;
+        } else {
+            try { localStorage.removeItem('shopee_click_time'); } catch(e){}
+            try { sessionStorage.removeItem('shopee_click_time'); } catch(e){}
+            return false;
+        }
     }
 
     async function init() {
@@ -83,15 +91,18 @@
         let shouldRedirectToShopee = false;
 
         if (hasBypassed) {
+            // Đã bypass ở trang chủ -> Bỏ qua mọi quảng cáo
             shouldRedirectToShopee = false;
         } else if (isIncognito) {
+            // Chưa bypass + Dùng Ẩn danh -> 100% nhảy Shopee
             if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; // Ẩn danh = 100% Shopee
+            shouldRedirectToShopee = true; 
         } else {
+            // Chưa bypass + Chế độ thường -> Tích lũy đủ 10 lần thì nhảy Shopee
             let downloadCount = parseInt(safeGet('global_download_count') || '0') + 1;
             if (downloadCount >= 10) {
                 safeSet('global_download_count', '0');
-                shouldRedirectToShopee = true; // Đủ 10 lần = Shopee
+                shouldRedirectToShopee = true;
             } else {
                 safeSet('global_download_count', downloadCount.toString());
             }
@@ -115,21 +126,21 @@
                     targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                 }
 
-                // Hàm thực thi chuyển hướng chuẩn, không bị chặn Pop-up
+                // Hàm thực thi chuyển hướng đảm bảo không bị trình duyệt chặn
                 const doRedirect = () => {
                     if (shouldRedirectToShopee) {
-                        // Kích hoạt mở link game ở tab phụ
+                        // Tạo thẻ <a> ẩn để mở link game tab mới
                         const a = document.createElement('a');
                         a.href = targetUrl;
                         a.target = '_blank';
                         a.rel = 'noopener noreferrer';
                         document.body.appendChild(a);
                         a.click();
-                        a.remove();
-
-                        // Tab chính nhảy thẳng sang Shopee
+                        
+                        // Tab hiện tại điều hướng ngay lập tức tới Shopee
                         window.location.href = getRandomShopeeLink();
                     } else {
+                        // Không dính quảng cáo -> Chuyển thẳng link game
                         window.location.href = targetUrl;
                     }
                 };
