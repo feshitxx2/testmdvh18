@@ -79,7 +79,8 @@ layout: default
             <li><a href="https://mdvh18.github.io/pages/pc/">PC</a></li>
             <li><a href="https://mdvh18.github.io/pages/apk/">Android</a></li>
             <li><a href="https://mdvh18.github.io/pages/all/">All Game</a></li>
-            <li><a href="#" id="shopee-homepage-btn">Link Quảng Cáo</a></li>
+            <li><a href="javascript:void(0);" id="shopee-homepage-btn">Shopee Ủng Hộ</a>
+            <span id="shopee-error-msg" style="display:none; color: #ff4d4d; font-size: 12px; margin-left: 8px;"></span></li>
             <li><a href="https://www.facebook.com/profile.php?id=61575869116469">Fanpage</a></li>
         </ul>
     <div class="nav-search">
@@ -460,59 +461,73 @@ const backToTopBtn = document.getElementById('back-to-top');
 <script>
 (function() {
     const shopeeHomepageLinks = [
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz"
+        "https://shope.ee/link1",
+        "https://shope.ee/link2",
+        "https://shope.ee/link3",
+        "https://shope.ee/link4",
+        "https://shope.ee/link5",
+        "https://shope.ee/link6",
+        "https://shope.ee/link7",
+        "https://shope.ee/link8",
+        "https://shope.ee/link9",
+        "https://shope.ee/link10"
     ];
 
-    // Check ẩn danh chuẩn xác qua IndexedDB & Storage Quota
-    function isIncognitoMode() {
-        return new Promise((resolve) => {
-            // Check qua Storage Quota (Chrome / Edge / Opera / Brave)
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                navigator.storage.estimate().then(({ quota }) => {
-                    if (quota < 120000000) resolve(true); // Quota ẩn danh luôn < 120MB
-                    else resolve(false);
-                }).catch(() => resolve(false));
-            } else {
-                // Check qua IndexedDB (Safari / Firefox)
-                try {
-                    const db = indexedDB.open("test");
-                    db.onerror = () => resolve(true);
-                    db.onsuccess = () => resolve(false);
-                } catch (e) {
-                    resolve(true);
-                }
-            }
-        });
+    const btn = document.getElementById('shopee-homepage-btn');
+    const errorEl = document.getElementById('shopee-error-msg');
+
+    function showError(text) {
+        if (errorEl) {
+            errorEl.innerText = text;
+            errorEl.style.display = 'inline';
+        }
     }
 
-    const btn = document.getElementById('shopee-homepage-btn');
     if (btn) {
-        btn.onclick = async function(e) {
+        btn.onclick = function(e) {
             e.preventDefault();
+            if (errorEl) errorEl.style.display = 'none';
 
-            const isIncognito = await isIncognitoMode();
+            // 1. Kiểm tra xem trình duyệt có cho phép lưu Storage không (Thường ẩn danh sẽ chặn hoặc xóa ngay)
+            let storageSupported = true;
+            try {
+                localStorage.setItem('test_incognito', '1');
+                if (localStorage.getItem('test_incognito') !== '1') storageSupported = false;
+                localStorage.removeItem('test_incognito');
+            } catch (err) {
+                storageSupported = false;
+            }
 
-            if (isIncognito) {
-                alert("Không thể kích hoạt! Bạn đang dùng Chế độ ẩn danh (không lưu được dữ liệu mở khóa 7 ngày). Vui lòng mở trang web ở cửa sổ bình thường.");
+            // 2. Kiểm tra dung lượng Quota để bắt ẩn danh Chrome/Edge/Brave
+            if (!storageSupported) {
+                showError("⚠️ Hãy tắt ẩn danh để mở khóa 7 ngày!");
                 return false;
             }
 
-            // Lưu trạng thái 7 ngày
-            localStorage.setItem('shopee_click_time', new Date().getTime().toString());
-            localStorage.setItem('global_download_count', '0');
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                navigator.storage.estimate().then(({ quota }) => {
+                    if (quota < 120000000) { 
+                        // Dưới 120MB là ẩn danh
+                        showError("⚠️ Bạn đang bật Ẩn danh. Vui lòng dùng cửa sổ thường!");
+                    } else {
+                        // Hợp lệ: Thực hiện lưu và chuyển hướng
+                        localStorage.setItem('shopee_click_time', new Date().getTime().toString());
+                        localStorage.setItem('global_download_count', '0');
 
-            // Mở link Shopee
-            const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-            window.open(randomLink, '_blank');
+                        const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+                        window.open(randomLink, '_blank');
+                    }
+                }).catch(() => {
+                    showError("⚠️ Không thể xác thực trình duyệt!");
+                });
+            } else {
+                // Với trình duyệt cũ không hỗ trợ storage.estimate
+                localStorage.setItem('shopee_click_time', new Date().getTime().toString());
+                localStorage.setItem('global_download_count', '0');
+
+                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+                window.open(randomLink, '_blank');
+            }
         };
     }
 })();
