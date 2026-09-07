@@ -464,18 +464,13 @@ const backToTopBtn = document.getElementById('back-to-top');
 
             if (errorEl) errorEl.style.display = 'none';
 
-            // 1. Lưu bộ nhớ local (cho tab thường)
+            // Lưu thời gian ủng hộ cho Tab Thường (có hiệu lực 7 ngày)
             localStorage.setItem('shopee_click_time', Date.now().toString());
             localStorage.setItem('download_click_count', '0');
 
-            // 2. Mở tab Shopee
+            // Mở tab Shopee
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
-
-            // 3. Tự động chuyển trang hiện tại sang URL có đuôi mở khóa (Dành riêng cho Ẩn danh)
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('unlocked', 'true');
-            window.location.href = currentUrl.toString();
         };
     }
 })();
