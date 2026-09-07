@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
- <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-  gtag('config', 'G-K15TLSNWWT');
-</script>   
+      gtag('config', 'G-K15TLSNWWT');
+    </script>    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đang Chuyển Hướng An Toàn... | MDVH18</title>
@@ -43,6 +43,51 @@
 
     <script>
     (function() {
+        // Danh sách 10 link Shopee Random
+        const shopeeLinks = [
+            "https://shope.ee/link1",
+            "https://shope.ee/link2",
+            "https://shope.ee/link3",
+            "https://shope.ee/link4",
+            "https://shope.ee/link5",
+            "https://shope.ee/link6",
+            "https://shope.ee/link7",
+            "https://shope.ee/link8",
+            "https://shope.ee/link9",
+            "https://shope.ee/link10"
+        ];
+
+        function getRandomShopeeLink() {
+            return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
+        }
+
+        // Kiểm tra trạng thái đã click Shopee chưa (có hiệu lực 7 ngày)
+        function isShopeeBypassed() {
+            const bypassTime = localStorage.getItem('shopee_click_time');
+            if (!bypassTime) return false;
+            const now = new Date().getTime();
+            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+            if (now - parseInt(bypassTime) < sevenDaysInMs) {
+                return true;
+            } else {
+                localStorage.removeItem('shopee_click_time');
+                return false;
+            }
+        }
+
+        // Xử lý bộ đếm 25 lượt tải
+        let shouldRedirectToShopee = false;
+        if (!isShopeeBypassed()) {
+            let downloadCount = parseInt(localStorage.getItem('global_download_count') || '0');
+            downloadCount++;
+            if (downloadCount >= 25) {
+                localStorage.setItem('global_download_count', '0');
+                shouldRedirectToShopee = true;
+            } else {
+                localStorage.setItem('global_download_count', downloadCount.toString());
+            }
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         let encoded = urlParams.get('url');
         const timerEl = document.getElementById('timer');
@@ -58,8 +103,13 @@
                 targetUrl = atob(cleanEncoded);
                 targetUrl = targetUrl.replace(/[^\x21-\x7E]/g, '').trim();
 
-                if (targetUrl.includes('mdvh18.github.io/mdvh18/')) {
-                    targetUrl = targetUrl.replace('mdvh18.github.io/mdvh18/', 'mdvh18.github.io/');
+                if (targetUrl.includes('mdvh18.com/mdvh18/')) {
+                    targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
+                }
+
+                // Nếu đạt mốc 25 lượt và chưa bypass, ghi đè link đích thành link Shopee random
+                if (shouldRedirectToShopee) {
+                    targetUrl = getRandomShopeeLink();
                 }
 
                 const redirectNow = (url) => {
@@ -123,7 +173,7 @@
                 </div>
                 <p style="font-size:13px; line-height:1.4; margin-bottom:12px; color:#e0e0e0;">${desc}</p>
                 <div style="text-align:right;">
-                    <a href="https://mdvh18.blogspot.com/p/faq.html" target="_blank" style="background:${color}; color:#1a1131; padding:4px 10px; border-radius:15px; text-decoration:none; font-weight:bold; font-size:11px;">XEM FAQ</a>
+                    <a href="https://mdvh18.com/p/faq.html" target="_blank" style="background:${color}; color:#1a1131; padding:4px 10px; border-radius:15px; text-decoration:none; font-weight:bold; font-size:11px;">XEM FAQ</a>
                 </div>`;
             document.body.appendChild(toast);
             setTimeout(() => {
@@ -132,6 +182,6 @@
             }, 8000);
         }
     })();
-</script>
+    </script>
 </body>
 </html>
