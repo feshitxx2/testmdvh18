@@ -457,6 +457,16 @@ const backToTopBtn = document.getElementById('back-to-top');
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
     if (btn) {
         btn.onclick = function(e) {
             e.preventDefault();
@@ -464,9 +474,12 @@ const backToTopBtn = document.getElementById('back-to-top');
 
             if (errorEl) errorEl.style.display = 'none';
 
-            // Ghi nhận mở khóa 7 ngày cho Tab Thường
             localStorage.setItem('shopee_click_time', Date.now().toString());
             localStorage.setItem('download_click_count', '0');
+            localStorage.setItem('incognito_bypassed', 'true');
+
+            setCookie('shopee_unlocked', 'true', 7);
+            setCookie('incognito_bypassed', 'true', 7);
 
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
