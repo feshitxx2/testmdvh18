@@ -468,7 +468,6 @@ const backToTopBtn = document.getElementById('back-to-top');
     }
 
     async function isIncognitoMode() {
-        // 1. Kiểm tra hỗ trợ LocalStorage básicos
         try {
             localStorage.setItem('test_incognito', '1');
             if (localStorage.getItem('test_incognito') !== '1') return true;
@@ -477,13 +476,10 @@ const backToTopBtn = document.getElementById('back-to-top');
             return true;
         }
 
-        // 2. Kiểm tra Storage Quota (Ngưỡng 40MB chuẩn xác hơn)
         if ('storage' in navigator && 'estimate' in navigator.storage) {
             try {
                 const { quota } = await navigator.storage.estimate();
-                if (quota < 40000000) { // Dưới 40MB là Ẩn danh
-                    return true;
-                }
+                if (quota < 40000000) return true;
             } catch (e) {
                 return false;
             }
@@ -503,16 +499,17 @@ const backToTopBtn = document.getElementById('back-to-top');
                 return false;
             }
 
-            // Hợp lệ (Cửa sổ thường): Thực hiện ghi nhận Bypass 7 ngày
-            try {
-                localStorage.setItem('shopee_click_time', new Date().getTime().toString());
-                localStorage.setItem('test_download_count', '0'); // Đồng bộ reset bộ đếm về 0
-            } catch(e) {}
+            // GHI DỮ LIỆU BYPASS (Lưu timestamp hiện tại)
+            const currentTime = new Date().getTime().toString();
+            localStorage.setItem('shopee_click_time', currentTime);
+            localStorage.setItem('test_download_count', '0');
 
             // Mở link Shopee
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
         };
     }
+})();
+</script>
 })();
 </script>
