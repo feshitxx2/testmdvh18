@@ -465,21 +465,50 @@ const backToTopBtn = document.getElementById('back-to-top');
         "https://s.shopee.vn/1gIPlfm3xz"
     ];
 
-    // Kiểm tra chế độ ẩn danh / Chặn lưu trữ
-    function checkIncognito() {
+    // Phát hiện chế độ ẩn danh sâu (Chống lại các trình duyệt đời mới)
+    function detectPrivateMode() {
         return new Promise((resolve) => {
-            const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-            if (!fs) {
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                navigator.storage.estimate().then(({ quota }) => {
+                    // Trong chế độ ẩn danh, dung lượng ổ đĩa khả dụng bị giới hạn rất nhỏ (< 120MB)
+                    if (quota < 120000000) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                }).catch(() => resolve(false));
+            } else {
                 try {
-                    localStorage.setItem('test_storage', '1');
-                    localStorage.removeItem('test_storage');
+                    localStorage.setItem('incognito_test', '1');
+                    localStorage.removeItem('incognito_test');
                     resolve(false);
                 } catch (e) {
                     resolve(true);
                 }
-            } else {
-                fs(window.TEMPORARY, 100, () => resolve(false), () => resolve(true));
             }
+        });
+    }
+
+    // Phát hiện trình chặn quảng cáo (AdBlocker)
+    function detectAdBlocker() {
+        return new Promise((resolve) => {
+            const fakeAd = document.createElement('div');
+            fakeAd.className = 'adsbox ad-unit ad-zone banner-ad google-ad';
+            fakeAd.style.position = 'absolute';
+            fakeAd.style.left = '-9999px';
+            fakeAd.style.height = '1px';
+            fakeAd.style.width = '1px';
+            document.body.appendChild(fakeAd);
+
+            setTimeout(() => {
+                const isBlocked = fakeAd.offsetHeight === 0 || 
+                                  fakeAd.offsetWidth === 0 || 
+                                  fakeAd.clientHeight === 0 || 
+                                  window.getComputedStyle(fakeAd).display === 'none' || 
+                                  window.getComputedStyle(fakeAd).visibility === 'hidden';
+                fakeAd.remove();
+                resolve(isBlocked);
+            }, 100);
         });
     }
 
@@ -488,23 +517,22 @@ const backToTopBtn = document.getElementById('back-to-top');
         btn.onclick = async function(e) {
             e.preventDefault();
 
-            const isIncognito = await checkIncognito();
-            if (isIncognito) {
-                alert("Không thành công! Bạn đang dùng chế độ ẩn danh hoặc chặn lưu trữ data. Vui lòng tắt ẩn danh/chặn quảng cáo và nhấp lại.");
-                return;
+            const isIncognito = await detectPrivateMode();
+            const isAdBlocked = await detectAdBlocker();
+
+            if (isIncognito || isAdBlocked) {
+                alert("Không thành công! Phát hiện bạn đang dùng Chế độ ẩn danh hoặc Trình chặn quảng cáo. Vui lòng tắt đi để mở khóa tải nhanh 7 ngày.");
+                return; // Ngăn không cho chạy đoạn lưu và không chuyển hướng Shopee
             }
 
             try {
-                // Lưu thời gian click để có hiệu lực 7 ngày
                 localStorage.setItem('shopee_click_time', new Date().getTime().toString());
-                // Reset lại bộ đếm lượt tải
                 localStorage.setItem('global_download_count', '0');
 
-                // Lấy random link Shopee và chuyển hướng
                 const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
                 window.open(randomLink, '_blank');
             } catch (err) {
-                alert("Không thành công! Vui lòng tắt trình chặn quảng cáo/bảo mật cookie và thử lại.");
+                alert("Không thành công! Trình duyệt của bạn đang chặn lưu trữ dữ liệu local.");
             }
         };
     }
