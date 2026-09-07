@@ -44,10 +44,6 @@
 <script>
 (function() {
     const shopeeLinks = [
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
         "https://s.shopee.vn/1gIPlfm3xz"
     ];
 
@@ -94,6 +90,7 @@
     }
 
     function isShopeeBypassed() {
+        // Kiểm tra xem trang chủ đã lưu giá trị bypass chưa
         const bypassTime = safeGet('shopee_click_time');
         if (!bypassTime) return false;
         const now = new Date().getTime();
@@ -114,18 +111,18 @@
 
         let shouldRedirectToShopee = false;
 
-        // Ưu tiên kiểm tra bypass trước
         if (hasBypassed) {
+            // Nếu đã Bypass ở trang chủ -> Cho qua luôn, không dính Shopee
             shouldRedirectToShopee = false;
         } else if (isIncognito) {
-            // Chưa bypass và dùng ẩn danh: 1 click = 1 quảng cáo
+            // Chưa bypass + Dùng Ẩn danh -> 100% nhảy quảng cáo
             if (alertBox) alertBox.style.display = 'block';
             shouldRedirectToShopee = true; 
         } else {
-            // Chưa bypass và dùng trình duyệt thường: Tích lũy 25 lượt click
+            // Chưa bypass + Dùng Thường -> Đủ 10 lần click sẽ nhảy Shopee
             let downloadCount = parseInt(safeGet('global_download_count') || '0');
             downloadCount++;
-            if (downloadCount >= 25) {
+            if (downloadCount >= 10) {
                 safeSet('global_download_count', '0');
                 shouldRedirectToShopee = true;
             } else {
@@ -152,17 +149,25 @@
                     targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                 }
 
-                const doRedirect = () => {
+                // Hàm điều hướng
+                const doRedirect = (isUserInitiated = false) => {
                     if (shouldRedirectToShopee) {
-                        window.open(targetUrl, '_blank');
-                        window.location.href = getRandomShopeeLink();
+                        if (isUserInitiated) {
+                            // Người dùng chủ động Click: Mở link game tab mới, chuyển tab hiện tại sang Shopee
+                            window.open(targetUrl, '_blank');
+                            window.location.href = getRandomShopeeLink();
+                        } else {
+                            // Tự động chuyển hướng (đếm ngược hết 3s): Tránh bị chặn Popup, chuyển thẳng tab sang Shopee
+                            window.location.href = getRandomShopeeLink();
+                        }
                     } else {
+                        // Không dính quảng cáo -> Chuyển thẳng tới link game
                         window.location.href = targetUrl;
                     }
                 };
 
                 if (fastBtn) {
-                    fastBtn.onclick = () => doRedirect();
+                    fastBtn.onclick = () => doRedirect(true);
                 }
 
                 if (!shouldRedirectToShopee && targetUrl.includes('drive.google.com')) {
@@ -192,10 +197,10 @@
                             manualBtn.style.display = 'inline-block';
                             manualBtn.onclick = (e) => {
                                 e.preventDefault();
-                                doRedirect();
+                                doRedirect(true);
                             };
                         }
-                        doRedirect();
+                        doRedirect(false);
                     }
                 }, 1000);
 
