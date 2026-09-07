@@ -457,54 +457,61 @@ const backToTopBtn = document.getElementById('back-to-top');
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    // Kiểm tra thiết bị di động
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Kiểm tra Tab ẩn danh
-    function isIncognito() {
-        try {
-            if (!window.indexedDB) return true;
-            return false;
-        } catch (err) {
-            return true;
+    // Hàm kiểm tra ẩn danh qua dung lượng Storage
+    function handleIncognitoCheck(callback) {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            navigator.storage.estimate().then(function(estimate) {
+                // Dung lượng Quota của Incognito trên Chromium luôn < 120MB
+                const isIncognito = estimate.quota < 120000000;
+                callback(isIncognito);
+            }).catch(function() {
+                callback(false);
+            });
+        } else {
+            callback(!window.indexedDB);
         }
     }
 
     if (btn) {
-        // Nếu là Tab ẩn danh trên Máy tính (Web) -> Ẩn toàn bộ thẻ <li>
-        if (!isMobile && isIncognito()) {
-            const parentLi = btn.closest('li');
-            if (parentLi) {
-                parentLi.style.display = 'none';
-            } else {
-                btn.style.display = 'none';
+        handleIncognitoCheck(function(isIncognito) {
+            // Nếu là Tab ẩn danh trên Máy tính (Web) -> Ẩn thẻ <li>
+            if (!isMobile && isIncognito) {
+                const parentLi = btn.closest('li');
+                if (parentLi) {
+                    parentLi.style.display = 'none';
+                } else {
+                    btn.style.display = 'none';
+                }
+                return;
             }
-            return;
-        }
 
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                const date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
+            // Môi trường hợp lệ -> Gán sự kiện click
+            function setCookie(name, value, days) {
+                let expires = "";
+                if (days) {
+                    const date = new Date();
+                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                    expires = "; expires=" + date.toUTCString();
+                }
+                document.cookie = name + "=" + (value || "") + expires + "; path=/";
             }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/";
-        }
 
-        btn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-            if (errorEl) errorEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'none';
 
-            localStorage.setItem('shopee_click_time', Date.now().toString());
-            localStorage.setItem('download_click_count', '0');
-            setCookie('shopee_unlocked', 'true', 7);
+                localStorage.setItem('shopee_click_time', Date.now().toString());
+                localStorage.setItem('download_click_count', '0');
+                setCookie('shopee_unlocked', 'true', 7);
 
-            const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-            window.open(randomLink, '_blank');
-        };
+                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+                window.open(randomLink, '_blank');
+            };
+        });
     }
 })();
 </script>
