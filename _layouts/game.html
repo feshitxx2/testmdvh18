@@ -822,21 +822,29 @@ stars.forEach(star => {
 // Kích hoạt chạy tải dữ liệu ngay khi mở bài viết lên
 loadRating();
   </script>
-  <script>
-document.addEventListener('click', function(e) {
+ <script>
+document.addEventListener('click', async function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
     if (link.href.includes('/testmdvh18/download.html?url=')) {
-        
-        // 1. Kiểm tra Ẩn danh
-        let isIncognito = false;
-        try {
-            localStorage.setItem('test_incognito_chk', '1');
-            localStorage.removeItem('test_incognito_chk');
-        } catch(err) {
-            isIncognito = true;
+        e.preventDefault(); // Tạm dừng chuyển hướng để check async
+
+        // 1. Kiểm tra Ẩn danh chuẩn 100% bằng Storage Quota
+        async function checkIncognitoReal() {
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                try {
+                    const { quota } = await navigator.storage.estimate();
+                    // Ẩn danh trên Chrome/Edge/Cốc Cốc giới hạn Quota rất nhỏ (< 400MB)
+                    if (quota < 400000000) return true; 
+                } catch (err) {
+                    return false;
+                }
+            }
+            return false;
         }
+
+        const isIncognito = await checkIncognitoReal();
 
         // 2. Kiểm tra Bypass 7 ngày
         const savedTime = localStorage.getItem('shopee_click_time');
@@ -845,12 +853,14 @@ document.addEventListener('click', function(e) {
 
         let shouldJumpShopee = false;
 
-        if (isIncognito) {
-            shouldJumpShopee = true; // Ẩn danh -> Nhảy
-        } else if (isBypassed) {
-            shouldJumpShopee = false; // Đã ủng hộ -> Không nhảy
+        if (isBypassed) {
+            // Đã ủng hộ: Dù Ẩn danh hay Thường đều KHÔNG nhảy
+            shouldJumpShopee = false;
+        } else if (isIncognito) {
+            // Chưa ủng hộ + Ẩn danh: BẮT BUỘC NHẢY NGAY LẦN 1
+            shouldJumpShopee = true;
         } else {
-            // Chưa ủng hộ -> Đếm 10 lần
+            // Chưa ủng hộ + Chế độ Thường: Đếm 10 lần
             let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
             if (count >= 10) {
                 localStorage.setItem('test_download_count', '0');
@@ -861,13 +871,13 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // 3. Mở Shopee ngay lập tức bằng cú Click thật
+        // 3. Thực thi
         if (shouldJumpShopee) {
             window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
         }
 
-        // Tab hiện tại tự động chuyển sang trang download.html
-        return;
+        // Chuyển tab hiện tại sang link download
+        window.location.href = link.href;
     }
 });
 </script>
