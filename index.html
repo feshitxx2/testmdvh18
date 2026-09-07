@@ -464,14 +464,13 @@ const backToTopBtn = document.getElementById('back-to-top');
         }
     }
 
-    // Kiểm tra Ẩn danh chuẩn xác qua LocalStorage
     function isIncognitoMode() {
         try {
             localStorage.setItem('test_incognito', '1');
             localStorage.removeItem('test_incognito');
             return false;
         } catch (err) {
-            return true; // Ẩn danh chặn LocalStorage -> Trả về true
+            return true;
         }
     }
 
@@ -485,7 +484,6 @@ const backToTopBtn = document.getElementById('back-to-top');
                 return false;
             }
 
-            // CHỈ LƯU TRÊN TRÌNH DUYỆT CỦA NGƯỜI ĐANG BẤM
             const currentTime = Date.now().toString();
             localStorage.setItem('shopee_click_time', currentTime);
             localStorage.setItem('test_download_count', '0');
