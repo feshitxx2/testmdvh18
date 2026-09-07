@@ -827,9 +827,47 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Nếu bấm vào link download, để mặc định cho trình duyệt chuyển hướng sang download.html
     if (link.href.includes('/testmdvh18/download.html?url=')) {
-        return; 
+        
+        // 1. Kiểm tra Ẩn danh
+        let isIncognito = false;
+        try {
+            localStorage.setItem('test_incognito_chk', '1');
+            localStorage.removeItem('test_incognito_chk');
+        } catch(err) {
+            isIncognito = true;
+        }
+
+        // 2. Kiểm tra Bypass 7 ngày
+        const savedTime = localStorage.getItem('shopee_click_time');
+        const now = Date.now();
+        const isBypassed = savedTime && ((now - Number(savedTime)) < 7 * 24 * 60 * 60 * 1000);
+
+        let shouldJumpShopee = false;
+
+        if (isIncognito) {
+            shouldJumpShopee = true; // Ẩn danh -> Nhảy
+        } else if (isBypassed) {
+            shouldJumpShopee = false; // Đã ủng hộ -> Không nhảy
+        } else {
+            // Chưa ủng hộ -> Đếm 10 lần
+            let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
+            if (count >= 10) {
+                localStorage.setItem('test_download_count', '0');
+                shouldJumpShopee = true;
+            } else {
+                localStorage.setItem('test_download_count', count.toString());
+                shouldJumpShopee = false;
+            }
+        }
+
+        // 3. Mở Shopee ngay lập tức bằng cú Click thật
+        if (shouldJumpShopee) {
+            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+        }
+
+        // Tab hiện tại tự động chuyển sang trang download.html
+        return;
     }
 });
 </script>
