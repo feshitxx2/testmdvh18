@@ -821,48 +821,38 @@ stars.forEach(star => {
 loadRating();
   </script>
 <script>
+// Hàm đọc giá trị Cookie
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
 document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Bỏ qua nếu click trúng nút ủng hộ
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        const savedTime = localStorage.getItem('shopee_click_time');
-        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
+        const isUnlocked = getCookie('shopee_unlocked');
         
-        let hasUnlocked = false;
-
-        // 1. Kiểm tra nếu là Ẩn danh và ĐÃ bấm ủng hộ trước đó -> Miễn quảng cáo
-        if (isIncognitoBypassed) {
-            hasUnlocked = true;
-        } 
-        // 2. Kiểm tra nếu là Tab thường đã bấm ủng hộ (hạn 7 ngày)
-        else if (savedTime) {
-            const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
-            if (diffDays < 7) {
-                hasUnlocked = true;
-            } else {
-                localStorage.removeItem('shopee_click_time'); // Hết hạn 7 ngày
-            }
-        }
-
-        // 3. Nếu CHƯA ỦNG HỘ -> Xử lý đếm 10 lần click
-        if (!hasUnlocked) {
-            let count = parseInt(localStorage.getItem('download_click_count') || '0', 10);
+        // Nếu chưa ủng hộ (hoặc vừa xóa cookie) -> Xử lý đếm 10 lần
+        if (!isUnlocked) {
+            let count = parseInt(getCookie('download_click_count') || '0', 10);
             count++;
 
             if (count >= 10) {
-                // Đủ 10 lần click -> Bật quảng cáo & reset bộ đếm về 0
-                localStorage.setItem('download_click_count', '0');
+                // Đủ 10 lần click -> Xóa đếm, bật Shopee
+                document.cookie = "download_click_count=0; path=/";
                 e.preventDefault();
                 window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
                 window.location.href = link.href;
             } else {
-                // Chưa đủ 10 lần -> Chỉ lưu số lần click, cho tải bình thường
-                localStorage.setItem('download_click_count', count.toString());
+                // Chưa đủ 10 lần -> Tăng bộ đếm trong Cookie
+                document.cookie = `download_click_count=${count}; path=/`;
             }
         }
     }
