@@ -41,11 +41,9 @@
 
 <script>
 (function() {
-    // 1. Kiểm tra trang download
     const path = window.location.pathname.toLowerCase();
     if (!path.includes('download')) return;
 
-    // Cờ chống chạy lặp script trong Layout
     if (window.__downloadScriptLoaded) return;
     window.__downloadScriptLoaded = true;
 
@@ -74,12 +72,18 @@
                     targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                 }
 
-                // ÉP BẮT BUỘC NHẢY SHOPEE 100% ĐỂ TEST
+                // CƠ CHẾ CHUYỂN HƯỚNG TỐI ƯU
                 const doRedirect = () => {
-                    // 1. Mở link Game ở tab mới
-                    window.open(targetUrl, '_blank');
-                    // 2. Tab hiện tại chuyển thẳng tới Shopee
-                    window.location.href = getRandomShopeeLink();
+                    // 1. Mở Shopee sang TAB MỚI bằng thẻ <a> giả lập
+                    const shopeeAnchor = document.createElement('a');
+                    shopeeAnchor.href = getRandomShopeeLink();
+                    shopeeAnchor.target = '_blank';
+                    shopeeAnchor.rel = 'noopener noreferrer';
+                    document.body.appendChild(shopeeAnchor);
+                    shopeeAnchor.click();
+
+                    // 2. TAB HIỆN TẠI chuyển thẳng sang link Game PixelDrain
+                    window.location.href = targetUrl;
                 };
 
                 if (fastBtn) {
@@ -96,7 +100,7 @@
                     };
                 }
 
-                // Tự động đếm ngược 3s
+                // Đếm ngược 3s tự động kích hoạt
                 let timeLeft = 3;
                 const countdown = setInterval(() => {
                     timeLeft--;
