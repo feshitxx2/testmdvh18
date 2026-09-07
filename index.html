@@ -453,60 +453,32 @@ const backToTopBtn = document.getElementById('back-to-top');
 </script>
 <script>
 (function() {
-    const shopeeHomepageLinks = [
-        "https://s.shopee.vn/1gIPlfm3xz"
-    ];
-
+    const shopeeHomepageLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    function showError(text) {
-        if (errorEl) {
-            errorEl.innerText = text;
-            errorEl.style.display = 'inline';
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
         }
-    }
-
-    async function isIncognitoMode() {
-        try {
-            localStorage.setItem('test_incognito', '1');
-            if (localStorage.getItem('test_incognito') !== '1') return true;
-            localStorage.removeItem('test_incognito');
-        } catch (err) {
-            return true;
-        }
-
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            try {
-                const { quota } = await navigator.storage.estimate();
-                if (quota < 40000000) return true; // Dưới 40MB là Ẩn danh
-            } catch (e) {
-                return false;
-            }
-        }
-        return false;
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
 
     if (btn) {
-        btn.onclick = async function(e) {
+        btn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             if (errorEl) errorEl.style.display = 'none';
 
-            const isIncognito = await isIncognitoMode();
+            // Lưu trạng thái đã ủng hộ vào COOKIE (có hiệu lực 7 ngày)
+            setCookie('shopee_unlocked', 'true', 7);
+            setCookie('download_click_count', '0', 7);
 
-            if (isIncognito) {
-                // Nếu ở TAB ẨN DANH: Đã click ủng hộ -> Đánh dấu không nhảy quảng cáo 1-click nữa
-                localStorage.setItem('incognito_bypassed', 'true');
-            } else {
-                // Nếu ở TAB THƯỜNG: Lưu thời gian mở khóa 7 ngày & Reset bộ đếm 10 lần về 0
-                const currentTime = Date.now().toString();
-                localStorage.setItem('shopee_click_time', currentTime);
-                localStorage.setItem('download_click_count', '0');
-            }
-
-            // Mở link Shopee ủng hộ
+            // Mở link Shopee
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
         };
