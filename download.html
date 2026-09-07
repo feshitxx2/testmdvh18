@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-K15TLSNWWT');
-</script>   
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đang Chuyển Hướng... | MDVH18 Test</title>
@@ -43,8 +34,8 @@
         return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
     }
 
-    // 1. Kiểm tra Ẩn danh (Nếu bị chặn Storage = Ẩn danh)
-    function isIncognito() {
+    // 1. Kiểm tra Ẩn danh qua Storage
+    function checkIncognito() {
         try {
             localStorage.setItem('test_incognito_chk', '1');
             localStorage.removeItem('test_incognito_chk');
@@ -54,11 +45,10 @@
         }
     }
 
-    // 2. Kiểm tra trạng thái Bypass 7 ngày (Chỉ kiểm tra, không tự ghi đè)
-    function isBypassed7Days() {
+    // 2. Kiểm tra Bypass 7 ngày
+    function check7DaysBypass() {
         try {
             const savedTime = localStorage.getItem('shopee_click_time');
-            // Nếu KHÔNG BẤM ủng hộ (không có key) -> Trả về false ngay lập tức
             if (!savedTime) return false;
 
             const now = Date.now();
@@ -66,38 +56,37 @@
             const sevenDays = 7 * 24 * 60 * 60 * 1000;
 
             if (!isNaN(clickTime) && (now - clickTime) < sevenDays) {
-                return true; // Còn hạn 7 ngày
+                return true; 
             } else {
-                localStorage.removeItem('shopee_click_time'); // Hết hạn thì xóa
+                localStorage.removeItem('shopee_click_time');
                 return false;
             }
-        } catch (e) {
+        } catch(e) {
             return false;
         }
     }
 
     function init() {
-        const incognito = isIncognito();
-        const bypassed = isBypassed7Days();
+        const isIncognitoMode = checkIncognito();
         const alertBox = document.getElementById('incognito-alert');
+        const isBypassed = check7DaysBypass();
 
-        let shouldJumpShopee = false;
+        let shouldRedirectToShopee = false;
 
-        if (incognito) {
+        if (isIncognitoMode) {
             if (alertBox) alertBox.style.display = 'block';
-            shouldJumpShopee = true; // Ẩn danh -> Bắt buộc nhảy
-        } else if (bypassed) {
-            shouldJumpShopee = false; // Đã ấn ủng hộ -> Bỏ qua Shopee
+            shouldRedirectToShopee = true; // Ẩn danh -> Bắt buộc nhảy
+        } else if (isBypassed) {
+            shouldRedirectToShopee = false; // Đã ủng hộ -> Không nhảy
         } else {
-            // Chưa ấn ủng hộ -> Đếm số lần tải
-            let currentCount = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
-            
-            if (currentCount >= 10) {
+            // Đếm 10 lần
+            let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
+            if (count >= 10) {
                 localStorage.setItem('test_download_count', '0');
-                shouldJumpShopee = true; // Đủ 10 lần -> Nhảy
+                shouldRedirectToShopee = true;
             } else {
-                localStorage.setItem('test_download_count', currentCount.toString());
-                shouldJumpShopee = false;
+                localStorage.setItem('test_download_count', count.toString());
+                shouldRedirectToShopee = false;
             }
         }
 
@@ -115,16 +104,21 @@
                 const countdown = setInterval(() => {
                     timeLeft--;
                     if (timerEl) timerEl.innerText = timeLeft;
-
+                    
                     if (timeLeft <= 0) {
                         clearInterval(countdown);
-
-                        if (shouldJumpShopee) {
-                            // Mở tab Game trước, chuyển tab hiện tại sang Shopee (Không bị chặn Popup)
-                            window.open(targetUrl, '_blank');
-                            window.location.href = getRandomShopeeLink();
+                        
+                        if (shouldRedirectToShopee) {
+                            // BỎ WINDOW.OPEN BỊ CHẶN: Dùng cơ chế Replace Location nối tiếp
+                            // Đổi vị trí tab hiện tại sang Shopee
+                            window.location.replace(getRandomShopeeLink());
+                            
+                            // Ngay lập tức mở link game trên tab mới (Lúc này sự kiện replace kích hoạt hợp lệ)
+                            setTimeout(() => {
+                                window.open(targetUrl, '_blank');
+                            }, 100);
                         } else {
-                            // Không dính Shopee -> Chuyển thẳng sang Game
+                            // Không dính Shopee -> Chuyển thẳng tab hiện tại sang link Game
                             window.location.href = targetUrl;
                         }
                     }
