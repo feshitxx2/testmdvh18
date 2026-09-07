@@ -820,89 +820,77 @@ stars.forEach(star => {
 });
 loadRating();
   </script>
+<!-- ================= SCRIPT 1: XỬ LÝ TAB THƯỜNG ================= -->
 <script>
 document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
-    if (!link || !link.href) return;
+    if (!link || !link.href || !link.href.includes('download.html?url=')) return;
 
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
-    if (link.href.includes('download.html?url=')) {
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
-        }
+    // Nếu phát hiện là Tab Ẩn Danh thì bỏ qua hoàn toàn, để Script 2 xử lý
+    if (!window.indexedDB || window.webkitRequestFileSystem) return;
 
-        // Kiểm tra tab ẩn danh đồng bộ
-        function isIncognitoSync() {
-            try {
-                // Trên Chromium/Chrome, quota FS trong Incognito giới hạn rất nhỏ hoặc FileSystem API bị chặn
-                return !window.indexedDB || /Incognito/i.test(navigator.userAgent);
-            } catch (err) {
-                return true;
-            }
-        }
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    }
 
-        // Phát hiện nhanh dựa trên việc Storage bị giới hạn hoặc kiểm tra tính khả thi của FileSystem
-        const isIncognito = isIncognitoSync() || (window.webkitRequestFileSystem ? true : false);
-
-        if (isIncognito) {
-            // === TAB ẨN DANH: 2 CLICK / 1 QUẢNG CÁO (BỎ QUA NÚT ỦNG HỘ) ===
-            let incognitoCount = parseInt(localStorage.getItem('incognito_download_click_count') || '0', 10) + 1;
-
-            if (incognitoCount >= 2) {
-                localStorage.setItem('incognito_download_click_count', '0');
-                e.preventDefault();
-                window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-                window.location.href = link.href;
-            } else {
-                localStorage.setItem('incognito_download_click_count', incognitoCount.toString());
-            }
+    // Kiếm tra xem có được mở khóa từ nút "Ủng hộ" không
+    const savedTime = localStorage.getItem('shopee_click_time');
+    let isBypassed = false;
+    if (savedTime) {
+        const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+        if (diffDays < 7) {
+            isBypassed = true;
         } else {
-            // === TAB THƯỜNG: 10 CLICK / 1 QUẢNG CÁO (CÓ ÁP DỤNG NÚT ỦNG HỘ) ===
-            const savedTime = localStorage.getItem('shopee_click_time');
-            let isBypassed = false;
-            if (savedTime) {
-                const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
-                if (diffDays < 7) {
-                    isBypassed = true;
-                } else {
-                    localStorage.removeItem('shopee_click_time');
-                }
-            }
-
-            const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-
-            // Nếu đã bấm nút ủng hộ ở tab thường thì bỏ qua quảng cáo
-            if (isBypassed || isCookieBypassed) return;
-
-            const isFirstClickInSession = !getCookie('session_started');
-            let shouldShopee = false;
-
-            if (isFirstClickInSession) {
-                document.cookie = "session_started=true; path=/";
-                shouldShopee = true;
-                localStorage.setItem('download_click_count', '1');
-            } else {
-                let count = parseInt(localStorage.getItem('download_click_count') || '1', 10) + 1;
-                if (count >= 10) {
-                    localStorage.setItem('download_click_count', '0');
-                    shouldShopee = true;
-                } else {
-                    localStorage.setItem('download_click_count', count.toString());
-                    shouldShopee = false;
-                }
-            }
-
-            if (shouldShopee) {
-                e.preventDefault();
-                window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-                window.location.href = link.href;
-            }
+            localStorage.removeItem('shopee_click_time');
         }
+    }
+
+    const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
+
+    // TAB THƯỜNG: Nếu đã bấm nút "Ủng hộ" thì BỎ QUA QUẢNG CÁO
+    if (isBypassed || isCookieBypassed) return;
+
+    // TAB THƯỜNG: 2 CLICK / 1 QUẢNG CÁO
+    let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
+    if (count >= 2) {
+        localStorage.setItem('download_click_count', '0');
+        e.preventDefault();
+        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+        window.location.href = link.href;
+    } else {
+        localStorage.setItem('download_click_count', count.toString());
+    }
+});
+</script>
+
+<!-- ================= SCRIPT 2: XỬ LÝ TAB ẨN DANH ================= -->
+<script>
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (!link || !link.href || !link.href.includes('download.html?url=')) return;
+
+    const btn = document.getElementById('shopee-homepage-btn');
+    if (btn && btn.contains(link)) return;
+
+    // Chỉ chạy khi là Tab Ẩn Danh
+    const isIncognito = !window.indexedDB || window.webkitRequestFileSystem;
+    if (!isIncognito) return;
+
+    // TAB ẨN DANH: 2 CLICK / 1 QUẢNG CÁO (KHOAN BỎ QUA, BẤM ỦNG HỘ VẪN DÍNH)
+    let incognitoCount = parseInt(localStorage.getItem('incognito_download_click_count') || '0', 10) + 1;
+    if (incognitoCount >= 2) {
+        localStorage.setItem('incognito_download_click_count', '0');
+        e.preventDefault();
+        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+        window.location.href = link.href;
+    } else {
+        localStorage.setItem('incognito_download_click_count', incognitoCount.toString());
     }
 });
 </script>
