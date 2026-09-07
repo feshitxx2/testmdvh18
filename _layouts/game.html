@@ -825,29 +825,45 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Bỏ qua nếu click trúng nút ủng hộ (nếu nút ủng hộ nằm chung trang)
+    // Bỏ qua nếu click trúng nút ủng hộ
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        // Kiểm tra xem user này đã bấm ủng hộ và còn trong hạn 7 ngày không
         const savedTime = localStorage.getItem('shopee_click_time');
+        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
+        
         let hasUnlocked = false;
 
-        if (savedTime) {
+        // 1. Kiểm tra nếu là Ẩn danh và ĐÃ bấm ủng hộ trước đó -> Miễn quảng cáo
+        if (isIncognitoBypassed) {
+            hasUnlocked = true;
+        } 
+        // 2. Kiểm tra nếu là Tab thường đã bấm ủng hộ (hạn 7 ngày)
+        else if (savedTime) {
             const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
             if (diffDays < 7) {
-                hasUnlocked = true; // Đã ủng hộ và còn hạn 7 ngày
+                hasUnlocked = true;
             } else {
-                localStorage.removeItem('shopee_click_time'); // Hết hạn -> xóa
+                localStorage.removeItem('shopee_click_time'); // Hết hạn 7 ngày
             }
         }
 
-        // Nếu chưa ủng hộ -> Mới bật link Shopee
+        // 3. Nếu CHƯA ỦNG HỘ -> Xử lý đếm 10 lần click
         if (!hasUnlocked) {
-            e.preventDefault();
-            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-            window.location.href = link.href;
+            let count = parseInt(localStorage.getItem('download_click_count') || '0', 10);
+            count++;
+
+            if (count >= 10) {
+                // Đủ 10 lần click -> Bật quảng cáo & reset bộ đếm về 0
+                localStorage.setItem('download_click_count', '0');
+                e.preventDefault();
+                window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+                window.location.href = link.href;
+            } else {
+                // Chưa đủ 10 lần -> Chỉ lưu số lần click, cho tải bình thường
+                localStorage.setItem('download_click_count', count.toString());
+            }
         }
     }
 });
