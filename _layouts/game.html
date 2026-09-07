@@ -827,10 +827,8 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Bắt đúng link dẫn tới download.html trên trang test
+    // Nếu bấm vào link download, để mặc định cho trình duyệt chuyển hướng sang download.html
     if (link.href.includes('/testmdvh18/download.html?url=')) {
-        // Để nguyên cho trình duyệt chuyển hướng tự nhiên sang download.html
-        // Mọi logic kiểm tra Ẩn danh, 7 ngày, 10 lần click sẽ do download.html xử lý.
         return; 
     }
 });
