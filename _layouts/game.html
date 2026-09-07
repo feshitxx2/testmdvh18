@@ -822,4 +822,24 @@ stars.forEach(star => {
 // Kích hoạt chạy tải dữ liệu ngay khi mở bài viết lên
 loadRating();
   </script>
+  <script>
+document.addEventListener('click', function(e) {
+    // Tìm thẻ <a> gần nhất được click
+    const link = e.target.closest('a');
+    
+    // Nếu không phải thẻ <a> hoặc không có href thì bỏ qua
+    if (!link || !link.href) return;
+
+    // Kiểm tra nếu link dẫn tới trang download.html kèm tham số url
+    if (link.href.includes('download.html?url=')) {
+        e.preventDefault(); // Chặn hành vi mở link mặc định
+
+        // 1. Tải Shopee ở tab mới (Được duyệt 100% vì xuất phát từ click của user)
+        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+
+        // 2. Chuyển tab hiện tại tới trang download
+        window.location.href = link.href;
+    }
+});
+</script>
 </html>
