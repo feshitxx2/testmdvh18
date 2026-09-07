@@ -79,8 +79,10 @@ layout: default
             <li><a href="https://mdvh18.github.io/pages/pc/">PC</a></li>
             <li><a href="https://mdvh18.github.io/pages/apk/">Android</a></li>
             <li><a href="https://mdvh18.github.io/pages/all/">All Game</a></li>
-            <li><a href="javascript:void(0);" id="shopee-homepage-btn">Shopee Ủng Hộ</a>
-            <span id="shopee-error-msg" style="display:none; color: #ff4d4d; font-size: 12px; margin-left: 8px;"></span></li>
+            <li id="shopee-li-item" style="display: none;">
+    <a href="javascript:void(0);" id="shopee-homepage-btn">Shopee Ủng Hộ</a>
+    <span id="shopee-error-msg" style="display:none; color: #ff4d4d; font-size: 12px; margin-left: 8px;"></span>
+</li>
             <li><a href="https://www.facebook.com/profile.php?id=61575869116469">Fanpage</a></li>
         </ul>
     <div class="nav-search">
@@ -455,36 +457,31 @@ const backToTopBtn = document.getElementById('back-to-top');
 (function() {
     const shopeeHomepageLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
     const btn = document.getElementById('shopee-homepage-btn');
+    const liItem = document.getElementById('shopee-li-item');
     const errorEl = document.getElementById('shopee-error-msg');
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Kiểm tra tab ẩn danh bằng cách thử ghi dữ liệu / kiểm tra bộ nhớ cô lập
-    function isIncognitoMode() {
-        try {
-            // Kiểm tra Safari Private / Chrome Incognito storage restriction
-            localStorage.setItem('test_incognito', '1');
-            localStorage.removeItem('test_incognito');
-            
-            // Nếu không ghi được cookie hoặc bị cô lập session
-            if (navigator.storage && navigator.storage.estimate) {
-                // Kiểm tra đồng bộ hạn mức nếu khả thi
-                return false; 
-            }
-            return false;
-        } catch (e) {
-            return true; // Bị chặn storage -> 100% Tab ẩn danh
+    // Kiểm tra khả năng lưu trữ thực tế
+    async function shouldShowButton() {
+        // Trên điện thoại: Cho hiện
+        if (isMobile) return true;
+
+        // Trên máy tính: Kiểm tra dung lượng Quota của Chrome/Edge
+        if (navigator.storage && navigator.storage.estimate) {
+            const { quota } = await navigator.storage.estimate();
+            // Nếu Quota nhỏ hơn 120MB -> Tab ẩn danh -> KHÔNG HIỆN
+            if (quota < 120000000) return false;
         }
+
+        return true;
     }
 
-    if (btn) {
-        const parentLi = btn.closest('li') || btn;
+    shouldShowButton().then(function(canShow) {
+        if (!canShow || !liItem) return;
 
-        // Nếu là Máy tính (PC) VÀ là Tab ẩn danh -> Ẩn ngay lập tức
-        if (!isMobile && isIncognitoMode()) {
-            parentLi.style.display = 'none';
-            return;
-        }
+        // Nếu hợp lệ (Tab thường) -> Mới cho hiện nút lên
+        liItem.style.display = '';
 
         function setCookie(name, value, days) {
             let expires = "";
@@ -496,22 +493,24 @@ const backToTopBtn = document.getElementById('back-to-top');
             document.cookie = name + "=" + (value || "") + expires + "; path=/";
         }
 
-        btn.onclick = function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+        if (btn) {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-            if (errorEl) errorEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'none';
 
-            try {
-                localStorage.setItem('shopee_click_time', Date.now().toString());
-                localStorage.setItem('download_click_count', '0');
-            } catch(err) {}
+                try {
+                    localStorage.setItem('shopee_click_time', Date.now().toString());
+                    localStorage.setItem('download_click_count', '0');
+                } catch(err) {}
 
-            setCookie('shopee_unlocked', 'true', 7);
+                setCookie('shopee_unlocked', 'true', 7);
 
-            const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-            window.open(randomLink, '_blank');
-        };
-    }
+                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+                window.open(randomLink, '_blank');
+            };
+        }
+    });
 })();
 </script>
