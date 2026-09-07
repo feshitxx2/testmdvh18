@@ -825,10 +825,58 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
+    // Bỏ qua nếu click nút ủng hộ
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
-    // Giữ nguyên luồng cho trình duyệt tự chuyển hướng sang download.html
+    if (link.href.includes('download.html?url=')) {
+        // 1. Kiểm tra ẩn danh
+        let isIncognito = false;
+        try {
+            localStorage.setItem('test_incognito', '1');
+            if (localStorage.getItem('test_incognito') !== '1') isIncognito = true;
+            localStorage.removeItem('test_incognito');
+        } catch (err) {
+            isIncognito = true;
+        }
+
+        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
+        const savedTime = localStorage.getItem('shopee_click_time');
+        
+        let isBypassed = false;
+        if (savedTime) {
+            const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+            if (diffDays < 7) {
+                isBypassed = true;
+            } else {
+                localStorage.removeItem('shopee_click_time');
+            }
+        }
+
+        let shouldShopee = false;
+
+        if (isIncognito) {
+            // Ẩn danh: chưa ủng hộ -> 1 click nảy ngay 1 Shopee
+            shouldShopee = !isIncognitoBypassed;
+        } else {
+            // Tab thường: chưa ủng hộ -> đếm đúng 10 lần
+            if (!isBypassed) {
+                let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
+                if (count >= 10) {
+                    localStorage.setItem('download_click_count', '0');
+                    shouldShopee = true;
+                } else {
+                    localStorage.setItem('download_click_count', count.toString());
+                    shouldShopee = false;
+                }
+            }
+        }
+
+        // 2. Nếu đủ điều kiện -> Mở Shopee ở tab mới ngay lập tức
+        if (shouldShopee) {
+            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+        }
+    }
 });
 </script>
 </html>
