@@ -457,28 +457,53 @@ const backToTopBtn = document.getElementById('back-to-top');
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
+    function showError(text) {
+        if (errorEl) {
+            errorEl.innerText = text;
+            errorEl.style.display = 'inline';
         }
-        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
+    async function isIncognitoMode() {
+        try {
+            localStorage.setItem('test_incognito', '1');
+            if (localStorage.getItem('test_incognito') !== '1') return true;
+            localStorage.removeItem('test_incognito');
+        } catch (err) {
+            return true;
+        }
+
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            try {
+                const { quota } = await navigator.storage.estimate();
+                if (quota < 40000000) return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     if (btn) {
-        btn.onclick = function(e) {
+        btn.onclick = async function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             if (errorEl) errorEl.style.display = 'none';
 
-            // Lưu trạng thái đã ủng hộ vào COOKIE (có hiệu lực 7 ngày)
-            setCookie('shopee_unlocked', 'true', 7);
-            setCookie('download_click_count', '0', 7);
+            const isIncognito = await isIncognitoMode();
 
-            // Mở link Shopee
+            if (isIncognito) {
+                // Ẩn danh -> Lưu cờ miễn quảng cáo cho phiên này
+                localStorage.setItem('incognito_bypassed', 'true');
+            } else {
+                // Tab thường -> Lưu thời gian mở khóa 7 ngày & Reset bộ đếm 10 lần
+                const currentTime = Date.now().toString();
+                localStorage.setItem('shopee_click_time', currentTime);
+                localStorage.setItem('download_click_count', '0');
+            }
+
+            // Mở link Shopee ủng hộ
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
         };
