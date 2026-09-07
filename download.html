@@ -1,25 +1,16 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-K15TLSNWWT');
-</script>   
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đang Chuyển Hướng An Toàn... | MDVH18 Test</title>
+<title>Đang Chuyển Hướng... | MDVH18 Test</title>
 <style>
     body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
     .box { text-align: center; background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(215, 155, 187, 0.2); max-width: 400px; width: 90%; }
     .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #f78f90; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #timer { font-size: 3em; color: #d79bbb; font-weight: bold; margin: 10px 0; }
-    .btn-fast { display: inline-block; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; transition: 0.3s; cursor: pointer; border: 1px solid #f78f90; font-family: inherit; font-size: 0.9em; }
+    .btn-fast { display: inline-block; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; cursor: pointer; border: 1px solid #f78f90; font-family: inherit; font-size: 0.9em; }
     .btn-fast:hover { background: #fff; color: #f78f90; box-shadow: 0 0 15px #f78f90; }
     .incognito-notice { background: rgba(255, 193, 7, 0.2); border: 1px dashed #ffc107; color: #ffe082; padding: 10px 14px; border-radius: 10px; font-size: 0.9em; margin-bottom: 15px; display: none; font-weight: bold; }
 </style>
@@ -59,27 +50,19 @@
         return false;
     }
 
-    // 2. Kiểm tra Bypass 7 ngày chuẩn xác
+    // 2. Kiểm tra Bypass 7 ngày (Trả về true/false ép kiểu cứng)
     function check7DaysBypass() {
         try {
             const savedTime = localStorage.getItem('shopee_click_time');
-            if (!savedTime) {
-                console.log("-> KHÔNG TÌM THẤY TIMESTAMPS BYPASS");
-                return false;
-            }
+            if (!savedTime) return false;
 
             const now = Date.now();
             const clickTime = Number(savedTime);
             const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-            const diff = now - clickTime;
 
-            console.log("Thời gian đã trôi qua (ms):", diff);
-
-            if (diff >= 0 && diff < sevenDaysInMs) {
-                console.log("-> BẮT ĐƯỢC BYPASS 7 NGÀY (KHÔNG NHẢY SHOPEE)");
-                return true;
+            if ((now - clickTime) < sevenDaysInMs) {
+                return true; // Còn hạn 7 ngày -> MIỄN QUẢNG CÁO
             } else {
-                console.log("-> BYPASS ĐÃ HẾT HẠN");
                 localStorage.removeItem('shopee_click_time');
                 return false;
             }
@@ -95,18 +78,15 @@
 
         let shouldRedirectToShopee = false;
 
+        // KIỂM TRA ĐIỀU KIỆN THEO THỨ TỰ ƯU TIÊN
         if (isIncognito) {
             if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; // Ẩn danh: BẮT BUỘC NHẢY
-            console.log("Trạng thái: ẨN DANH -> Bắt buộc nhảy Shopee");
-        } else if (isBypassed) {
-            shouldRedirectToShopee = false; // Đã click trang chủ: TẮT NHẢY 100%
-            console.log("Trạng thái: ĐÃ BYPASS 7 NGÀY -> Tắt nhảy Shopee");
+            shouldRedirectToShopee = true; // 1. Ẩn danh: Luôn nhảy
+        } else if (isBypassed === true) {
+            shouldRedirectToShopee = false; // 2. Đã bấm ủng hộ (< 7 ngày): TUYỆT ĐỐI KHÔNG NHẢY
         } else {
-            // Chưa click trang chủ: Đếm 10 lần
+            // 3. Chưa bấm ủng hộ: Tính bộ đếm 10 lần
             let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
-            console.log("Trạng thái: THƯỜNG -> Lần tải thứ " + count + "/10");
-            
             if (count >= 10) {
                 localStorage.setItem('test_download_count', '0');
                 shouldRedirectToShopee = true;
@@ -128,10 +108,6 @@
             try {
                 let cleanEncoded = encoded.trim().replace(/\s/g, '+');
                 targetUrl = atob(cleanEncoded).replace(/[^\x21-\x7E]/g, '').trim();
-
-                if (targetUrl.includes('mdvh18.com/mdvh18/')) {
-                    targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
-                }
 
                 const doRedirect = () => {
                     if (shouldRedirectToShopee) {
@@ -164,10 +140,10 @@
                 }, 1000);
 
             } catch (e) {
-                if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ</h3><p>Link không hợp lệ.</p>";
+                if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ</h3>";
             }
         } else {
-            if (boxEl) boxEl.innerHTML = "<h3>LỖI ĐƯỜNG DẪN</h3><p>Không tìm thấy liên kết.</p>";
+            if (boxEl) boxEl.innerHTML = "<h3>LỖI ĐƯỜNG DẪN</h3>";
         }
     }
 
