@@ -13,16 +13,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đang Chuyển Hướng... | MDVH18</title>
+<style>
+  body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+</style>
 </head>
 <body>
 
 <script>
 (function() {
-    const path = window.location.pathname.toLowerCase();
-    if (!path.includes('download')) return;
-
-    if (window.__downloadScriptLoaded) return;
-    window.__downloadScriptLoaded = true;
+    if (window.__redirectScriptLoaded) return;
+    window.__redirectScriptLoaded = true;
 
     const shopeeLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
 
@@ -42,7 +42,7 @@
                 targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
             }
 
-            // 1. Mở Shopee sang TAB MỚI
+            // 1. Mở link Shopee sang Tab mới
             const shopeeAnchor = document.createElement('a');
             shopeeAnchor.href = getRandomShopeeLink();
             shopeeAnchor.target = '_blank';
@@ -50,14 +50,14 @@
             document.body.appendChild(shopeeAnchor);
             shopeeAnchor.click();
 
-            // 2. TAB HIỆN TẠI chuyển thẳng sang link Game ngay lập tức
+            // 2. Tab hiện tại chuyển thẳng sang link Game PixelDrain
             window.location.href = targetUrl;
 
         } catch (e) {
-            document.body.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20%'>LỖI GIẢI MÃ LINK</h3>";
+            document.body.innerHTML = "<h3>LỖI GIẢI MÃ LINK</h3>";
         }
     } else {
-        document.body.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20%'>KHÔNG TÌM THẤY LIÊN KẾT</h3>";
+        document.body.innerHTML = "<h3>KHÔNG TÌM THẤY THAM SỐ LINK (?url=)</h3>";
     }
 })();
 </script>
