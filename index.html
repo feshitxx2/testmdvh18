@@ -453,7 +453,10 @@ const backToTopBtn = document.getElementById('back-to-top');
 </script>
 <script>
 (function() {
-    const shopeeHomepageLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
+    const shopeeHomepageLinks = [
+        "https://s.shopee.vn/1gIPlfm3xz"
+    ];
+
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
@@ -464,30 +467,46 @@ const backToTopBtn = document.getElementById('back-to-top');
         }
     }
 
-    function isIncognitoMode() {
+    async function isIncognitoMode() {
         try {
             localStorage.setItem('test_incognito', '1');
+            if (localStorage.getItem('test_incognito') !== '1') return true;
             localStorage.removeItem('test_incognito');
-            return false;
         } catch (err) {
             return true;
         }
+
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            try {
+                const { quota } = await navigator.storage.estimate();
+                if (quota < 40000000) return true; // Dưới 40MB là Ẩn danh
+            } catch (e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     if (btn) {
-        btn.onclick = function(e) {
+        btn.onclick = async function(e) {
             e.preventDefault();
             if (errorEl) errorEl.style.display = 'none';
 
-            if (isIncognitoMode()) {
+            const isIncognito = await isIncognitoMode();
+
+            if (isIncognito) {
                 showError("⚠️ Bạn đang bật Ẩn danh. Vui lòng tắt ẩn danh để mở khóa 7 ngày!");
                 return false;
             }
 
+            // GHI DỮ LIỆU BYPASS (Lưu Timestamp chính xác)
             const currentTime = Date.now().toString();
             localStorage.setItem('shopee_click_time', currentTime);
-            localStorage.setItem('test_download_count', '0');
+            localStorage.setItem('test_download_count', '0'); // Reset bộ đếm về 0
 
+            console.log("Đã lưu shopee_click_time:", currentTime);
+
+            // Mở link Shopee
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
         };
