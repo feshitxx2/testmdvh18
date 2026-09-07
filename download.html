@@ -41,11 +41,11 @@
 
 <script>
 (function() {
-    // 1. Kiểm tra chính xác trang download (Nhận cả download.html lẫn /download)
+    // 1. Kiểm tra trang download
     const path = window.location.pathname.toLowerCase();
     if (!path.includes('download')) return;
 
-    // Cờ chống chạy trùng lặp script trong Layout
+    // Cờ chống chạy lặp script trong Layout
     if (window.__downloadScriptLoaded) return;
     window.__downloadScriptLoaded = true;
 
@@ -55,41 +55,7 @@
         return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
     }
 
-    // Kiểm tra Ẩn danh dựa trên Quota (400MB)
-    async function checkIncognito() {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            try {
-                const { quota } = await navigator.storage.estimate();
-                return quota < 400000000;
-            } catch (e) {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    async function startRedirectProcess() {
-        const isIncognito = await checkIncognito();
-        const alertBox = document.getElementById('incognito-alert');
-
-        let shouldRedirectToShopee = false;
-
-        if (isIncognito) {
-            if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; 
-        } else {
-            let count = parseInt(localStorage.getItem('test_download_count') || '0') + 1;
-            console.log("Lần bấm thứ:", count); // Xem ở F12 Console
-            
-            if (count >= 10) {
-                localStorage.setItem('test_download_count', '0');
-                shouldRedirectToShopee = true;
-            } else {
-                localStorage.setItem('test_download_count', count.toString());
-                shouldRedirectToShopee = false;
-            }
-        }
-
+    function startRedirectProcess() {
         const urlParams = new URLSearchParams(window.location.search);
         let encoded = urlParams.get('url');
         const timerEl = document.getElementById('timer');
@@ -108,17 +74,12 @@
                     targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                 }
 
-                // CƠ CHẾ CHUYỂN HƯỚNG CHUẨN: Tab hiện tại ĐI SHOPEE, Tab phụ ĐI GAME
+                // ÉP BẮT BUỘC NHẢY SHOPEE 100% ĐỂ TEST
                 const doRedirect = () => {
-                    if (shouldRedirectToShopee) {
-                        // Chuyển TAB HIỆN TẠI sang Shopee trước (Không bao giờ bị chặn)
-                        window.location.href = getRandomShopeeLink();
-                        // Mở link game ở tab phụ
-                        window.open(targetUrl, '_blank');
-                    } else {
-                        // Chưa dính Shopee: Chuyển thẳng link game
-                        window.location.href = targetUrl;
-                    }
+                    // 1. Mở link Game ở tab mới
+                    window.open(targetUrl, '_blank');
+                    // 2. Tab hiện tại chuyển thẳng tới Shopee
+                    window.location.href = getRandomShopeeLink();
                 };
 
                 if (fastBtn) {
