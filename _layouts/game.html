@@ -820,9 +820,7 @@ stars.forEach(star => {
 });
 loadRating();
   </script>
-<!-- ================= SCRIPT 1: XỬ LÝ TAB THƯỜNG ================= -->
 <script>
-// ==================== CODE DÀNH RIÊNG CHO TAB THƯỜNG ====================
 document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href || !link.href.includes('download.html?url=')) return;
@@ -837,7 +835,21 @@ document.addEventListener('click', function(e) {
         return null;
     }
 
-    // 1. Kiểm tra xem người dùng đã bấm nút "Ủng hộ" ở trang chủ chưa
+    // Kiểm tra xem có phải thiết bị di động (điện thoại/máy tính bảng) hay không
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Kiểm tra xem có đang ở Tab ẩn danh hay không
+    function checkIncognito() {
+        try {
+            if (!window.indexedDB) return true;
+            return false;
+        } catch (err) {
+            return true;
+        }
+    }
+    const isIncognito = checkIncognito();
+
+    // 1. KIỂM TRA ĐIỀU KIỆN MIỄN QUẢNG CÁO (BYPASS)
     const savedTime = localStorage.getItem('shopee_click_time');
     let isBypassed = false;
     if (savedTime) {
@@ -849,50 +861,56 @@ document.addEventListener('click', function(e) {
         }
     }
     const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
+    const isAppBypassed = localStorage.getItem('shopee_app_opened') === 'true';
 
-    // Nếu ĐÃ BẤM ỦNG HỘ -> Thoát ngay, không hiện quảng cáo
-    if (isBypassed || isCookieBypassed) return;
-
-    // 2. Nếu CHƯA ỦNG HỘ -> Đếm đúng 10 click mới hiện quảng cáo
-    let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
-
-    if (count >= 10) {
-        localStorage.setItem('download_click_count', '0');
-        e.preventDefault();
-        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-        window.location.href = link.href;
-    } else {
-        localStorage.setItem('download_click_count', count.toString());
+    // Xử lý quyền miễn quảng cáo:
+    // - Tab thường: Ấn ủng hộ -> Miễn quảng cáo.
+    // - Tab ẩn danh trên Điện thoại: Nhảy sang App Shopee thành công -> Miễn quảng cáo.
+    // - Tab ẩn danh trên Web (Máy tính): Dù ấn ủng hộ vẫn KHÔNG được miễn.
+    if (!isIncognito && (isBypassed || isCookieBypassed)) {
+        return; // Tab thường đã ủng hộ -> Bỏ qua quảng cáo
     }
-});
-</script>
- <script>
-// ==================== CODE DÀNH RIÊNG CHO TAB ẨN DANH ====================
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('a');
-    if (!link || !link.href || !link.href.includes('download.html?url=')) return;
 
-    const btn = document.getElementById('shopee-homepage-btn');
-    if (btn && btn.contains(link)) return;
+    if (isIncognito && isMobile && isAppBypassed) {
+        return; // Tab ẩn danh điện thoại đã mở App thành công -> Bỏ qua quảng cáo
+    }
 
-    // Lấy số click hiện tại trực tiếp từ URL (để không phụ thuộc vào bộ nhớ trình duyệt)
+    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
+    // Lấy mốc target click ngẫu nhiên đã lưu, nếu chưa có thì tạo mới (từ 3 đến 5)
+    let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
+    if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
+        targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3; // Random 3, 4 hoặc 5
+        localStorage.setItem('shopee_target_clicks', targetClicks.toString());
+    }
+
+    // Lấy số click hiện tại từ URL Parameter (để không mất lượt trong Tab ẩn danh) hoặc LocalStorage
     const urlParams = new URLSearchParams(window.location.search);
-    let currentClick = parseInt(urlParams.get('incognito_cnt') || '0', 10) + 1;
+    let currentClick = parseInt(urlParams.get('shopee_cnt') || localStorage.getItem('download_click_count') || '0', 10) + 1;
 
-    // Đủ 2 click -> Bật quảng cáo Shopee
-    if (currentClick >= 2) {
+    if (currentClick >= targetClicks) {
+        // ĐỦ SỐ CLICK -> NỔ QUẢNG CÁO SHOPEE
+        localStorage.setItem('download_click_count', '0');
+        localStorage.removeItem('shopee_target_clicks'); // Reset mốc random cho lần sau
+
+        // Nếu là điện thoại -> Đánh dấu đã nhảy sang App thành công
+        if (isMobile) {
+            localStorage.setItem('shopee_app_opened', 'true');
+        }
+
         e.preventDefault();
         window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
 
-        // Xóa tham số incognito_cnt trên URL khi đã mở quảng cáo
+        // Làm sạch URL
         const cleanUrl = new URL(link.href);
-        cleanUrl.searchParams.delete('incognito_cnt');
+        cleanUrl.searchParams.delete('shopee_cnt');
         window.location.href = cleanUrl.toString();
     } else {
-        // Chưa đủ 2 click -> Gắn số click vào link tiếp theo để nhớ lượt bấm
+        // CHƯA ĐỦ SỐ CLICK -> LƯU LƯỢT BẤM VÀ CỘNG VÀO LINK
+        localStorage.setItem('download_click_count', currentClick.toString());
+
         const nextUrl = new URL(link.href);
-        nextUrl.searchParams.set('incognito_cnt', currentClick.toString());
-        
+        nextUrl.searchParams.set('shopee_cnt', currentClick.toString());
+
         e.preventDefault();
         window.location.href = nextUrl.toString();
     }
