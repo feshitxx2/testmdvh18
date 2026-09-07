@@ -36,7 +36,7 @@ gtag('js', new Date());
 <div id="incognito-alert" class="incognito-notice">🕵️ Phát hiện chế độ ẩn danh!</div>
 <h3>HỆ THỐNG ĐANG KIỂM TRA</h3>
 <p>Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.</p>
-<div id="timer">4</div>
+<div id="timer">3</div>
 <button id="fast-link" class="btn-fast">TIẾP TỤC NGAY</button>
 <a id="manual-link" class="btn-manual" href="#">NHẤN VÀO ĐÂY NẾU KHÔNG TỰ CHUYỂN</a>
 </div>
@@ -48,11 +48,6 @@ gtag('js', new Date());
         "https://s.shopee.vn/1gIPlfm3xz",
         "https://s.shopee.vn/1gIPlfm3xz",
         "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
         "https://s.shopee.vn/1gIPlfm3xz"
     ];
 
@@ -60,7 +55,6 @@ gtag('js', new Date());
         return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
     }
 
-    // Kiểm tra ẩn danh đa tầng
     function checkIncognito() {
         return new Promise((resolve) => {
             const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
@@ -152,31 +146,25 @@ gtag('js', new Date());
                     targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                 }
 
-                const redirectNow = (url) => {
-                    const ghostLink = document.createElement('a');
-                    ghostLink.href = url;
-                    ghostLink.rel = "noreferrer";
-                    document.body.appendChild(ghostLink);
-                    ghostLink.click();
-                    setTimeout(() => window.location.replace(url), 300);
-                };
-
-                // Hàm thực hiện hành động chuyển hướng chính
-                const handleAction = () => {
+                // Chuyển hướng an toàn tránh popup blocker
+                const doRedirect = () => {
                     if (shouldRedirectToShopee) {
-                        // Mở Shopee ở tab mới
-                        window.open(getRandomShopeeLink(), '_blank');
+                        // Mở link tải ở tab mới trước, rồi chuyển tab hiện tại sang Shopee
+                        // Làm cách này trình duyệt nhận diện là hành động hợp lệ từ người dùng
+                        window.open(targetUrl, '_blank');
+                        window.location.href = getRandomShopeeLink();
+                    } else {
+                        // Nếu bình thường thì chuyển thẳng đến link tải
+                        window.location.href = targetUrl;
                     }
-                    // Tab hiện tại chuyển tới link tải gốc
-                    redirectNow(targetUrl);
                 };
 
                 if (fastBtn) {
-                    fastBtn.onclick = handleAction;
+                    fastBtn.onclick = () => doRedirect();
                 }
 
                 if (!shouldRedirectToShopee && targetUrl.includes('drive.google.com')) {
-                    redirectNow(targetUrl);
+                    window.location.href = targetUrl;
                     return; 
                 }
 
@@ -199,15 +187,13 @@ gtag('js', new Date());
                         clearInterval(countdown);
                         if (fastBtn) fastBtn.style.display = 'none';
                         if (manualBtn) {
-                            manualBtn.href = targetUrl;
                             manualBtn.style.display = 'inline-block';
                             manualBtn.onclick = (e) => {
-                                if (shouldRedirectToShopee) {
-                                    window.open(getRandomShopeeLink(), '_blank');
-                                }
+                                e.preventDefault();
+                                doRedirect();
                             };
                         }
-                        handleAction();
+                        doRedirect();
                     }
                 }, 1000);
 
