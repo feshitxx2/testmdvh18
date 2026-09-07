@@ -835,10 +835,21 @@ document.addEventListener('click', function(e) {
         return null;
     }
 
-    // Kiểm tra thiết bị Điện thoại
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // 1. KIỂM TRA TRẠNG THÁI MỞ KHÓA (BYPASS)
+    // Kiểm tra bộ nhớ bền vững (Khác biệt giữa Tab thường và Tab ẩn danh)
+    let isPersistentStorage = false;
+    try {
+        localStorage.setItem('perm_test', '1');
+        if (localStorage.getItem('perm_test') === '1') {
+            localStorage.removeItem('perm_test');
+            isPersistentStorage = true;
+        }
+    } catch(err) {
+        isPersistentStorage = false;
+    }
+
+    // 1. KIỂM TRA TRẠNG THÁI BYPASS
     const savedTime = localStorage.getItem('shopee_click_time');
     let isBypassed = false;
 
@@ -851,44 +862,35 @@ document.addEventListener('click', function(e) {
         }
     }
     
-    // Cookie kiểm tra cho Tab thường
     const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-
-    // Đã từng nhảy sang App Shopee trên điện thoại chưa
     const isAppOpened = localStorage.getItem('shopee_app_opened') === 'true';
 
-    // === XỬ LÝ LOGIC MIỄN QUẢNG CÁO ===
+    // XỬ LÝ MIỄN QUẢNG CÁO:
+    // - Trên Mobile: Mở App Shopee hoặc đã có dấu ủng hộ -> Miễn.
+    // - Trên PC Web: CHỈ MIỄN NẾU LÀ TAB THƯỜNG (isPersistentStorage = true) AND có dấu ủng hộ.
     if (isMobile) {
-        // TRÊN ĐIỆN THOẠI: Mở app thành công hoặc bấm ủng hộ -> MIỄN QUẢNG CÁO
-        if (isAppOpened || isBypassed || isCookieBypassed) {
-            return;
-        }
+        if (isAppOpened || isBypassed || isCookieBypassed) return;
     } else {
-        // TRÊN MÁY TÍNH (WEB):
-        // Nếu có dấu lưu shopee_click_time hoặc Cookie từ nút Ủng hộ -> MIỄN QUẢNG CÁO
-        if (isBypassed || isCookieBypassed) {
-            return;
-        }
+        if (isPersistentStorage && (isBypassed || isCookieBypassed)) return;
     }
 
-    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
+    // 2. ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
     let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
     if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
-        targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3; // Random 3, 4 hoặc 5
-        localStorage.setItem('shopee_target_clicks', targetClicks.toString());
+        targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
+        try { localStorage.setItem('shopee_target_clicks', targetClicks.toString()); } catch(err) {}
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     let currentClick = parseInt(urlParams.get('shopee_cnt') || localStorage.getItem('download_click_count') || '0', 10) + 1;
 
     if (currentClick >= targetClicks) {
-        // ĐỦ CLICK -> BẬT SHOPEE
-        localStorage.setItem('download_click_count', '0');
-        localStorage.removeItem('shopee_target_clicks');
-
-        if (isMobile) {
-            localStorage.setItem('shopee_app_opened', 'true');
-        }
+        // ĐỦ CLICK -> NỔ QUẢNG CÁO
+        try {
+            localStorage.setItem('download_click_count', '0');
+            localStorage.removeItem('shopee_target_clicks');
+            if (isMobile) localStorage.setItem('shopee_app_opened', 'true');
+        } catch(err) {}
 
         e.preventDefault();
         window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
@@ -897,8 +899,8 @@ document.addEventListener('click', function(e) {
         cleanUrl.searchParams.delete('shopee_cnt');
         window.location.href = cleanUrl.toString();
     } else {
-        // CHƯA ĐỦ CLICK -> LƯU VÀO URL
-        localStorage.setItem('download_click_count', currentClick.toString());
+        // CHƯA ĐỦ CLICK -> TRUYỀN THAM SỐ QUA URL (Để Tab ẩn danh không bị mất lượt đếm)
+        try { localStorage.setItem('download_click_count', currentClick.toString()); } catch(err) {}
 
         const nextUrl = new URL(link.href);
         nextUrl.searchParams.set('shopee_cnt', currentClick.toString());
