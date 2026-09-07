@@ -450,6 +450,13 @@ const backToTopBtn = document.getElementById('back-to-top');
     {% endfor %}
   ];
 </script>
+<li>
+    <a href="https://mdvh18.github.io/pages/all/">All Game</a>
+</li>
+<li>
+    <a href="#" id="shopee-homepage-btn">Shopee Ủng Hộ</a>
+</li>
+
 <script>
 (function() {
     const shopeeHomepageLinks = [
@@ -465,50 +472,25 @@ const backToTopBtn = document.getElementById('back-to-top');
         "https://s.shopee.vn/1gIPlfm3xz"
     ];
 
-    // Phát hiện chế độ ẩn danh sâu (Chống lại các trình duyệt đời mới)
-    function detectPrivateMode() {
+    // Check ẩn danh chuẩn xác qua IndexedDB & Storage Quota
+    function isIncognitoMode() {
         return new Promise((resolve) => {
+            // Check qua Storage Quota (Chrome / Edge / Opera / Brave)
             if ('storage' in navigator && 'estimate' in navigator.storage) {
                 navigator.storage.estimate().then(({ quota }) => {
-                    // Trong chế độ ẩn danh, dung lượng ổ đĩa khả dụng bị giới hạn rất nhỏ (< 120MB)
-                    if (quota < 120000000) {
-                        resolve(true);
-                    } else {
-                        resolve(false);
-                    }
+                    if (quota < 120000000) resolve(true); // Quota ẩn danh luôn < 120MB
+                    else resolve(false);
                 }).catch(() => resolve(false));
             } else {
+                // Check qua IndexedDB (Safari / Firefox)
                 try {
-                    localStorage.setItem('incognito_test', '1');
-                    localStorage.removeItem('incognito_test');
-                    resolve(false);
+                    const db = indexedDB.open("test");
+                    db.onerror = () => resolve(true);
+                    db.onsuccess = () => resolve(false);
                 } catch (e) {
                     resolve(true);
                 }
             }
-        });
-    }
-
-    // Phát hiện trình chặn quảng cáo (AdBlocker)
-    function detectAdBlocker() {
-        return new Promise((resolve) => {
-            const fakeAd = document.createElement('div');
-            fakeAd.className = 'adsbox ad-unit ad-zone banner-ad google-ad';
-            fakeAd.style.position = 'absolute';
-            fakeAd.style.left = '-9999px';
-            fakeAd.style.height = '1px';
-            fakeAd.style.width = '1px';
-            document.body.appendChild(fakeAd);
-
-            setTimeout(() => {
-                const isBlocked = fakeAd.offsetHeight === 0 || 
-                                  fakeAd.offsetWidth === 0 || 
-                                  fakeAd.clientHeight === 0 || 
-                                  window.getComputedStyle(fakeAd).display === 'none' || 
-                                  window.getComputedStyle(fakeAd).visibility === 'hidden';
-                fakeAd.remove();
-                resolve(isBlocked);
-            }, 100);
         });
     }
 
@@ -517,23 +499,20 @@ const backToTopBtn = document.getElementById('back-to-top');
         btn.onclick = async function(e) {
             e.preventDefault();
 
-            const isIncognito = await detectPrivateMode();
-            const isAdBlocked = await detectAdBlocker();
+            const isIncognito = await isIncognitoMode();
 
-            if (isIncognito || isAdBlocked) {
-                alert("Không thành công! Phát hiện bạn đang dùng Chế độ ẩn danh hoặc Trình chặn quảng cáo. Vui lòng tắt đi để mở khóa tải nhanh 7 ngày.");
-                return; // Ngăn không cho chạy đoạn lưu và không chuyển hướng Shopee
+            if (isIncognito) {
+                alert("Không thể kích hoạt! Bạn đang dùng Chế độ ẩn danh (không lưu được dữ liệu mở khóa 7 ngày). Vui lòng mở trang web ở cửa sổ bình thường.");
+                return false;
             }
 
-            try {
-                localStorage.setItem('shopee_click_time', new Date().getTime().toString());
-                localStorage.setItem('global_download_count', '0');
+            // Lưu trạng thái 7 ngày
+            localStorage.setItem('shopee_click_time', new Date().getTime().toString());
+            localStorage.setItem('global_download_count', '0');
 
-                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-                window.open(randomLink, '_blank');
-            } catch (err) {
-                alert("Không thành công! Trình duyệt của bạn đang chặn lưu trữ dữ liệu local.");
-            }
+            // Mở link Shopee
+            const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+            window.open(randomLink, '_blank');
         };
     }
 })();
