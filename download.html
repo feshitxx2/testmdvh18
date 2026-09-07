@@ -1,237 +1,792 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-K15TLSNWWT');
-    </script>    
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', 'G-K15TLSNWWT');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đang Chuyển Hướng An Toàn... | MDVH18</title>
     <style>
-        body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        .box { text-align: center; background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(215, 155, 187, 0.2); max-width: 400px; width: 90%; }
-        .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #f78f90; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #timer { font-size: 3em; color: #d79bbb; font-weight: bold; margin: 10px 0; }
-        .btn-manual, .btn-fast { display: inline-block; background: #f78f90; color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; transition: 0.3s; cursor: pointer; border: none; font-family: inherit; }
-        .btn-manual { display: none; }
-        .btn-fast { background: rgba(255, 255, 255, 0.1); border: 1px solid #f78f90; font-size: 0.9em; }
-        .btn-manual:hover, .btn-fast:hover { background: #fff; color: #f78f90; box-shadow: 0 0 15px #f78f90; }
-        .incognito-notice { background: rgba(255, 193, 7, 0.2); border: 1px dashed #ffc107; color: #ffe082; padding: 10px 14px; border-radius: 10px; font-size: 0.9em; margin-bottom: 15px; display: none; font-weight: bold; }
-        
-        .toast-custom { position: fixed; bottom: 30px; right: 30px; background: #1a1131; color: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 15px 40px rgba(0,0,0,0.6); z-index: 10000; font-family: "Segoe UI", sans-serif; max-width: 320px; animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #0f0c29;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .box {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 30px rgba(215, 155, 187, 0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #f78f90;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        #timer {
+            font-size: 3em;
+            color: #d79bbb;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .btn-manual,
+        .btn-fast {
+            display: inline-block;
+            background: #f78f90;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: 0.3s;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+        .btn-manual {
+            display: none;
+        }
+        .btn-fast {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #f78f90;
+            font-size: 0.9em;
+        }
+        .btn-manual:hover,
+        .btn-fast:hover {
+            background: #fff;
+            color: #f78f90;
+            box-shadow: 0 0 15px #f78f90;
+        }
+        .incognito-notice {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px dashed #ffc107;
+            color: #ffe082;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            display: none;
+            font-weight: bold;
+        }
+        .ad-notice {
+            display: none;
+            background: rgba(247, 143, 144, 0.1);
+            border: 1px solid rgba(247, 143, 144, 0.5);
+            padding: 12px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .toast-custom {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #1a1131;
+            color: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            font-family: "Segoe UI", sans-serif;
+            max-width: 320px;
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        .loading-text {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="box" id="main-box">
         <div class="loader"></div>
-        <div id="incognito-alert" class="incognito-notice">🕵️ Phát hiện chế độ ẩn danh!</div>
-        <h3>HỆ THỐNG ĐANG KIỂM TRA</h3>
-        <p>Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.</p>
+        <div id="incognito-alert" class="incognito-notice">
+            🕵️ Phát hiện chế độ ẩn danh!
+        </div>
+        <h3 id="status-title">
+            HỆ THỐNG ĐANG KIỂM TRA
+        </h3>
+        <p id="status-text">
+            Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.
+        </p>
+        <div id="ad-notice" class="ad-notice">
+            📢 <b>Chế độ ẩn danh</b><br>
+            Bạn cần mở quảng cáo trước khi tiếp tục tải game.
+        </div>
         <div id="timer">4</div>
-        <button id="fast-link" class="btn-fast">TIẾP TỤC NGAY</button>
-        <a id="manual-link" class="btn-manual" href="#">NHẤN VÀO ĐÂY NẾU KHÔNG TỰ CHUYỂN</a>
+        <button id="fast-link" class="btn-fast">
+            TIẾP TỤC NGAY
+        </button>
+        <a id="manual-link"
+           class="btn-manual"
+           href="#"
+           target="_self">
+            NHẤN VÀO ĐÂY NẾU KHÔNG TỰ CHUYỂN
+        </a>
+        <div id="loading-text" class="loading-text">
+            Đang chuẩn bị liên kết...
+        </div>
     </div>
-
     <script>
-    (function() {
-        const shopeeLinks = [
-            "https://shope.ee/link1",
-            "https://shope.ee/link2",
-            "https://shope.ee/link3",
-            "https://shope.ee/link4",
-            "https://shope.ee/link5",
-            "https://shope.ee/link6",
-            "https://shope.ee/link7",
-            "https://shope.ee/link8",
-            "https://shope.ee/link9",
-            "https://shope.ee/link10"
-        ];
-
-        function getRandomShopeeLink() {
-            return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
-        }
-
-        // Kiểm tra ẩn danh đa tầng (Storage Quota + Safari/Firefox Fallback + FileSystem)
-        function checkIncognito() {
-            return new Promise((resolve) => {
-                const fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-                if (fs) {
-                    fs(window.TEMPORARY, 100, () => resolve(false), () => resolve(true));
-                    return;
+        (function () {
+            /* =========================================================
+               DANH SÁCH LINK QUẢNG CÁO
+               Thay các link mẫu bên dưới bằng link thật của bạn.
+               ========================================================= */
+            const adLinks = [
+                "https://shope.ee/link1",
+                "https://shope.ee/link2",
+                "https://shope.ee/link3",
+                "https://shope.ee/link4",
+                "https://shope.ee/link5",
+                "https://shope.ee/link6",
+                "https://shope.ee/link7",
+                "https://shope.ee/link8",
+                "https://shope.ee/link9",
+                "https://shope.ee/link10"
+            ];
+            /* =========================================================
+               CHỌN RANDOM LINK QUẢNG CÁO
+               ========================================================= */
+            function getRandomAdLink() {
+                if (!adLinks.length) {
+                    return null;
                 }
-                
-                if ('storage' in navigator && 'estimate' in navigator.storage) {
-                    navigator.storage.estimate().then(({ quota }) => {
-                        // Trình duyệt ẩn danh Chromium giới hạn quota thường dưới 400MB (hoặc 10% RAM)
-                        if (quota < 400000000) {
+                return adLinks[
+                    Math.floor(Math.random() * adLinks.length)
+                ];
+            }
+            /* =========================================================
+               KIỂM TRA ẨN DANH
+               ========================================================= */
+            function checkIncognito() {
+                return new Promise((resolve) => {
+                    const fs =
+                        window.RequestFileSystem ||
+                        window.webkitRequestFileSystem;
+                    if (fs) {
+                        fs(
+                            window.TEMPORARY,
+                            100,
+                            function () {
+                                resolve(false);
+                            },
+                            function () {
+                                resolve(true);
+                            }
+                        );
+                        return;
+                    }
+                    if (
+                        "storage" in navigator &&
+                        "estimate" in navigator.storage
+                    ) {
+                        navigator.storage
+                            .estimate()
+                            .then(({ quota }) => {
+                                if (quota < 400000000) {
+                                    resolve(true);
+                                } else {
+                                    resolve(false);
+                                }
+                            })
+                            .catch(() => {
+                                resolve(false);
+                            });
+                        return;
+                    }
+                    try {
+                        const db =
+                            indexedDB.open("mdvh18_incognito_test");
+                        db.onerror = function () {
                             resolve(true);
-                        } else {
+                        };
+                        db.onsuccess = function () {
                             resolve(false);
-                        }
-                    }).catch(() => resolve(false));
-                    return;
-                }
-
+                        };
+                    } catch (e) {
+                        resolve(true);
+                    }
+                });
+            }
+            /* =========================================================
+               STORAGE AN TOÀN
+               ========================================================= */
+            function safeGet(key) {
                 try {
-                    const db = indexedDB.open("test");
-                    db.onerror = function() { resolve(true); };
-                    db.onsuccess = function() { resolve(false); };
+                    return (
+                        localStorage.getItem(key) ||
+                        sessionStorage.getItem(key)
+                    );
                 } catch (e) {
-                    resolve(true);
+                    try {
+                        return sessionStorage.getItem(key);
+                    } catch (e2) {
+                        return null;
+                    }
                 }
-            });
-        }
-
-        function safeGet(key) {
-            try { return localStorage.getItem(key) || sessionStorage.getItem(key); } catch (e) { return sessionStorage.getItem(key); }
-        }
-
-        function safeSet(key, val) {
-            try { localStorage.setItem(key, val); } catch (e) {}
-            try { sessionStorage.setItem(key, val); } catch (e) {}
-        }
-
-        function isShopeeBypassed() {
-            const bypassTime = safeGet('shopee_click_time');
-            if (!bypassTime) return false;
-            const now = new Date().getTime();
-            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-            if (now - parseInt(bypassTime) < sevenDaysInMs) {
-                return true;
-            } else {
-                try { localStorage.removeItem('shopee_click_time'); } catch(e){}
-                try { sessionStorage.removeItem('shopee_click_time'); } catch(e){}
+            }
+            function safeSet(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {}
+                try {
+                    sessionStorage.setItem(key, value);
+                } catch (e) {}
+            }
+            /* =========================================================
+               KIỂM TRA ĐÃ VƯỢT QUẢNG CÁO TRONG 7 NGÀY CHƯA
+               ========================================================= */
+            function isAdBypassed() {
+                const bypassTime =
+                    safeGet("shopee_click_time");
+                if (!bypassTime) {
+                    return false;
+                }
+                const now =
+                    Date.now();
+                const sevenDays =
+                    7 *
+                    24 *
+                    60 *
+                    60 *
+                    1000;
+                if (
+                    now -
+                    parseInt(bypassTime, 10)
+                    <
+                    sevenDays
+                ) {
+                    return true;
+                }
+                try {
+                    localStorage.removeItem(
+                        "shopee_click_time"
+                    );
+                } catch (e) {}
+                try {
+                    sessionStorage.removeItem(
+                        "shopee_click_time"
+                    );
+                } catch (e) {}
                 return false;
             }
-        }
-
-        async function init() {
-            const isIncognito = await checkIncognito();
-            const alertBox = document.getElementById('incognito-alert');
-
-            let shouldRedirectToShopee = false;
-
-            if (isIncognito) {
-                if (alertBox) alertBox.style.display = 'block';
-                shouldRedirectToShopee = true; 
-            } else if (!isShopeeBypassed()) {
-                let downloadCount = parseInt(safeGet('global_download_count') || '0');
-                downloadCount++;
-                if (downloadCount >= 25) {
-                    safeSet('global_download_count', '0');
-                    shouldRedirectToShopee = true;
-                } else {
-                    safeSet('global_download_count', downloadCount.toString());
-                }
+            /* =========================================================
+               GHI NHẬN ĐÃ MỞ QUẢNG CÁO
+               ========================================================= */
+            function markAdClicked() {
+                safeSet(
+                    "shopee_click_time",
+                    Date.now().toString()
+                );
             }
-
-            const urlParams = new URLSearchParams(window.location.search);
-            let encoded = urlParams.get('url');
-            const timerEl = document.getElementById('timer');
-            const manualBtn = document.getElementById('manual-link');
-            const fastBtn = document.getElementById('fast-link');
-            const boxEl = document.getElementById('main-box');
-            
-            let targetUrl = "";
-
-            if (encoded) {
+            /* =========================================================
+               CHUYỂN LINK
+               ========================================================= */
+            function redirectTo(url) {
+                if (!url) {
+                    return;
+                }
+                window.location.replace(url);
+            }
+            /* =========================================================
+               MỞ QUẢNG CÁO
+               ========================================================= */
+            function openAdvertisement(adUrl) {
+                if (!adUrl) {
+                    return false;
+                }
+                /*
+                 * Quan trọng:
+                 * window.open được gọi trực tiếp bên trong
+                 * sự kiện click của người dùng.
+                 *
+                 * Vì vậy trình duyệt ít khả năng chặn popup hơn.
+                 */
+                const adWindow =
+                    window.open(
+                        adUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                    );
+                /*
+                 * Đánh dấu đã click quảng cáo.
+                 */
+                markAdClicked();
+                /*
+                 * Nếu browser chặn popup thì vẫn tiếp tục tải.
+                 */
+                if (!adWindow) {
+                    showToast(
+                        "⚠️",
+                        "Trình duyệt đã chặn quảng cáo",
+                        "Hãy cho phép cửa sổ bật lên nếu muốn mở quảng cáo.",
+                        "#ffc107"
+                    );
+                    return false;
+                }
+                return true;
+            }
+            /* =========================================================
+               TOAST
+               ========================================================= */
+            function showToast(
+                icon,
+                title,
+                desc,
+                color
+            ) {
+                const toast =
+                    document.createElement("div");
+                toast.className =
+                    "toast-custom";
+                toast.style.cssText = `
+                    border: 2px solid ${color};
+                    padding: 15px;
+                    background: #1a1131;
+                    border-radius: 10px;
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 9999;
+                    max-width: 300px;
+                    transition: 0.5s;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                `;
+                toast.innerHTML = `
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        margin-bottom:10px;
+                    ">
+                        <span style="
+                            font-size:24px;
+                            margin-right:10px;
+                        ">
+                            ${icon}
+                        </span>
+                        <strong style="
+                            color:${color};
+                            font-size:16px;
+                        ">
+                            ${title}
+                        </strong>
+                    </div>
+                    <p style="
+                        font-size:13px;
+                        line-height:1.4;
+                        margin-bottom:12px;
+                        color:#e0e0e0;
+                    ">
+                        ${desc}
+                    </p>
+                    <div style="text-align:right;">
+                        <a
+                            href="https://mdvh18.com/p/faq.html"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style="
+                                background:${color};
+                                color:#1a1131;
+                                padding:4px 10px;
+                                border-radius:15px;
+                                text-decoration:none;
+                                font-weight:bold;
+                                font-size:11px;
+                            "
+                        >
+                            XEM FAQ
+                        </a>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.transform =
+                        "translateX(150%)";
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 800);
+                }, 8000);
+            }
+            /* =========================================================
+               MAIN
+               ========================================================= */
+            async function init() {
+                const isIncognito =
+                    await checkIncognito();
+                const alertBox =
+                    document.getElementById(
+                        "incognito-alert"
+                    );
+                const adNotice =
+                    document.getElementById(
+                        "ad-notice"
+                    );
+                const timerEl =
+                    document.getElementById(
+                        "timer"
+                    );
+                const manualBtn =
+                    document.getElementById(
+                        "manual-link"
+                    );
+                const fastBtn =
+                    document.getElementById(
+                        "fast-link"
+                    );
+                const boxEl =
+                    document.getElementById(
+                        "main-box"
+                    );
+                const titleEl =
+                    document.getElementById(
+                        "status-title"
+                    );
+                const textEl =
+                    document.getElementById(
+                        "status-text"
+                    );
+                const loadingText =
+                    document.getElementById(
+                        "loading-text"
+                    );
+                /* =====================================================
+                   XÁC ĐỊNH CÓ CẦN QUẢNG CÁO KHÔNG
+                   ===================================================== */
+                let shouldShowAd =
+                    false;
+                /*
+                 * Ẩn danh:
+                 * luôn yêu cầu quảng cáo.
+                 */
+                if (isIncognito) {
+                    shouldShowAd = true;
+                    if (alertBox) {
+                        alertBox.style.display =
+                            "block";
+                    }
+                }
+                /*
+                 * Không ẩn danh:
+                 * sau mỗi 25 lượt tải sẽ yêu cầu quảng cáo.
+                 */
+                else if (!isAdBypassed()) {
+                    let downloadCount =
+                        parseInt(
+                            safeGet(
+                                "global_download_count"
+                            ) || "0",
+                            10
+                        );
+                    downloadCount++;
+                    if (downloadCount >= 25) {
+                        safeSet(
+                            "global_download_count",
+                            "0"
+                        );
+                        shouldShowAd = true;
+                    } else {
+                        safeSet(
+                            "global_download_count",
+                            downloadCount.toString()
+                        );
+                    }
+                }
+                /* =====================================================
+                   LẤY LINK TẢI
+                   ===================================================== */
+                const urlParams =
+                    new URLSearchParams(
+                        window.location.search
+                    );
+                let encoded =
+                    urlParams.get("url");
+                if (!encoded) {
+                    boxEl.innerHTML = `
+                        <h3>LỖI ĐƯỜNG DẪN</h3>
+                        <p>Không tìm thấy liên kết tải.</p>
+                    `;
+                    return;
+                }
+                let targetUrl = "";
                 try {
-                    let cleanEncoded = encoded.trim().replace(/\s/g, '+');
-                    targetUrl = atob(cleanEncoded);
-                    targetUrl = targetUrl.replace(/[^\x21-\x7E]/g, '').trim();
-
-                    if (targetUrl.includes('mdvh18.com/mdvh18/')) {
-                        targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
+                    let cleanEncoded =
+                        encoded
+                            .trim()
+                            .replace(/\s/g, "+");
+                    targetUrl =
+                        atob(cleanEncoded);
+                    targetUrl =
+                        targetUrl
+                            .replace(/[^\x21-\x7E]/g, "")
+                            .trim();
+                    /*
+                     * Sửa đường dẫn MDVH18 cũ.
+                     */
+                    if (
+                        targetUrl.includes(
+                            "mdvh18.com/mdvh18/"
+                        )
+                    ) {
+                        targetUrl =
+                            targetUrl.replace(
+                                "mdvh18.com/mdvh18/",
+                                "mdvh18.com/"
+                            );
                     }
-
-                    // Ép buộc ghi đè targetUrl nếu là Ẩn danh hoặc đếm đủ 25 lượt
-                    if (shouldRedirectToShopee) {
-                        targetUrl = getRandomShopeeLink();
-                    }
-
-                    const redirectNow = (url) => {
-                        const ghostLink = document.createElement('a');
-                        ghostLink.href = url;
-                        ghostLink.rel = "noreferrer";
-                        document.body.appendChild(ghostLink);
-                        ghostLink.click();
-                        setTimeout(() => window.location.replace(url), 300);
-                    };
-
-                    if (fastBtn) {
-                        fastBtn.onclick = () => redirectNow(targetUrl);
-                    }
-
-                    // Nếu targetUrl bị đè thành Shopee thì bỏ qua phần check Drive để không redirect sớm
-                    if (!shouldRedirectToShopee && targetUrl.includes('drive.google.com')) {
-                        redirectNow(targetUrl);
-                        return; 
-                    }
-
-                    if (!shouldRedirectToShopee) {
-                        if (targetUrl.includes('pixeldrain.com')) {
-                            showToast('🚀', 'Phát hiện Pixeldrain!', 'Giới hạn 6GB/ngày. Xem FAQ để biết mẹo tải.', '#f78f90');
-                        } else if (/terabox|1024tera|teraboxapp/.test(targetUrl)) {
-                            showToast('☁️', 'Phát hiện Terabox!', 'Nên dùng App hoặc đăng nhập để tải nhanh hơn.', '#54b5f5');
-                        } else if (targetUrl.includes('buzzheavier.com')) {
-                            showToast('⚡', 'Phát hiện Buzzheavier!', 'Dịch vụ tốc độ cao. Nếu lỗi hãy tắt VPN.', '#ffeb3b');
-                        }
-                    }
-
-                    let timeLeft = 3;
-                    const countdown = setInterval(() => {
-                        timeLeft--;
-                        if (timerEl) timerEl.innerText = timeLeft;
-                        
-                        if (timeLeft <= 0) {
-                            clearInterval(countdown);
-                            if (fastBtn) fastBtn.style.display = 'none';
-                            if (manualBtn) {
-                                manualBtn.href = targetUrl;
-                                manualBtn.style.display = 'inline-block';
-                            }
-                            redirectNow(targetUrl);
-                        }
-                    }, 1000);
-
                 } catch (e) {
-                    boxEl.innerHTML = "<h3>LỖI GIẢI MÃ</h3><p>Link không hợp lệ.</p>";
+                    boxEl.innerHTML = `
+                        <h3>LỖI GIẢI MÃ</h3>
+                        <p>Link không hợp lệ hoặc đã bị hỏng.</p>
+                    `;
+                    return;
                 }
-            } else {
-                boxEl.innerHTML = "<h3>LỖI ĐƯỜNG DẪN</h3><p>Không tìm thấy liên kết.</p>";
+                /*
+                 * Giữ nguyên link tải.
+                 *
+                 * KHÔNG ghi đè targetUrl bằng link quảng cáo.
+                 */
+                const downloadUrl =
+                    targetUrl;
+                /*
+                 * Link quảng cáo chỉ được mở riêng.
+                 */
+                const adUrl =
+                    shouldShowAd
+                        ? getRandomAdLink()
+                        : null;
+                /* =====================================================
+                   THÔNG BÁO DỊCH VỤ
+                   ===================================================== */
+                if (!shouldShowAd) {
+                    if (
+                        targetUrl.includes(
+                            "drive.google.com"
+                        )
+                    ) {
+                        redirectTo(
+                            downloadUrl
+                        );
+                        return;
+                    }
+                    if (
+                        targetUrl.includes(
+                            "pixeldrain.com"
+                        )
+                    ) {
+                        showToast(
+                            "🚀",
+                            "Phát hiện Pixeldrain!",
+                            "Giới hạn 6GB/ngày. Xem FAQ để biết mẹo tải.",
+                            "#f78f90"
+                        );
+                    }
+                    else if (
+                        /terabox|1024tera|teraboxapp/i
+                            .test(targetUrl)
+                    ) {
+                        showToast(
+                            "☁️",
+                            "Phát hiện Terabox!",
+                            "Nên dùng App hoặc đăng nhập để tải nhanh hơn.",
+                            "#54b5f5"
+                        );
+                    }
+                    else if (
+                        targetUrl.includes(
+                            "buzzheavier.com"
+                        )
+                    ) {
+                        showToast(
+                            "⚡",
+                            "Phát hiện Buzzheavier!",
+                            "Dịch vụ tốc độ cao. Nếu lỗi hãy tắt VPN.",
+                            "#ffeb3b"
+                        );
+                    }
+                }
+                /* =====================================================
+                   XỬ LÝ SAU COUNTDOWN
+                   ===================================================== */
+                let timeLeft = 3;
+                if (shouldShowAd) {
+                    /*
+                     * Không tự động mở popup sau countdown.
+                     * Chờ click để browser cho phép window.open.
+                     */
+                    if (adNotice) {
+                        adNotice.style.display =
+                            "block";
+                    }
+                    if (titleEl) {
+                        titleEl.innerText =
+                            "QUẢNG CÁO ĐƯỢC YÊU CẦU";
+                    }
+                    if (textEl) {
+                        textEl.innerText =
+                            "Hãy bấm nút bên dưới để mở quảng cáo. Sau đó bạn sẽ được chuyển tới link tải.";
+                    }
+                    if (fastBtn) {
+                        fastBtn.innerText =
+                            "📢 MỞ QUẢNG CÁO & TẢI GAME";
+                    }
+                    if (loadingText) {
+                        loadingText.innerText =
+                            "Sau khi bấm, quảng cáo mở ở tab mới.";
+                    }
+                }
+                /* =====================================================
+                   CLICK BUTTON
+                   ===================================================== */
+                if (fastBtn) {
+                    fastBtn.onclick =
+                        function () {
+                            /*
+                             * Trường hợp cần quảng cáo.
+                             */
+                            if (shouldShowAd) {
+                                openAdvertisement(
+                                    adUrl
+                                );
+                                /*
+                                 * Chờ một chút để tab quảng cáo
+                                 * được tạo trước khi chuyển trang tải.
+                                 */
+                                setTimeout(
+                                    function () {
+                                        redirectTo(
+                                            downloadUrl
+                                        );
+                                    },
+                                    500
+                                );
+                                return;
+                            }
+                            /*
+                             * Không cần quảng cáo.
+                             */
+                            redirectTo(
+                                downloadUrl
+                            );
+                        };
+                }
+                /* =====================================================
+                   COUNTDOWN
+                   ===================================================== */
+                const countdown =
+                    setInterval(
+                        function () {
+                            timeLeft--;
+                            if (timerEl) {
+                                timerEl.innerText =
+                                    timeLeft;
+                            }
+                            if (timeLeft <= 0) {
+                                clearInterval(
+                                    countdown
+                                );
+                                if (timerEl) {
+                                    timerEl.style.display =
+                                        "none";
+                                }
+                                /*
+                                 * CÓ QUẢNG CÁO
+                                 */
+                                if (shouldShowAd) {
+                                    /*
+                                     * Không tự chuyển.
+                                     * Hiện nút để người dùng click.
+                                     */
+                                    if (fastBtn) {
+                                        fastBtn.style.display =
+                                            "inline-block";
+                                    }
+                                    if (loadingText) {
+                                        loadingText.innerText =
+                                            "Bấm nút để mở quảng cáo và tiếp tục tải.";
+                                    }
+                                }
+                                /*
+                                 * KHÔNG CÓ QUẢNG CÁO
+                                 */
+                                else {
+                                    if (fastBtn) {
+                                        fastBtn.style.display =
+                                            "none";
+                                    }
+                                    if (manualBtn) {
+                                        manualBtn.href =
+                                            downloadUrl;
+                                        manualBtn.style.display =
+                                            "inline-block";
+                                    }
+                                    redirectTo(
+                                        downloadUrl
+                                    );
+                                }
+                            }
+                        },
+                        1000
+                    );
+                /* =====================================================
+                   LINK DỰ PHÒNG
+                   ===================================================== */
+                if (manualBtn) {
+                    manualBtn.href =
+                        downloadUrl;
+                }
             }
-        }
-
-        function showToast(icon, title, desc, color) {
-            const toast = document.createElement('div');
-            toast.className = 'toast-custom';
-            toast.style.cssText = `border: 2px solid ${color}; padding: 15px; background: #1a1131; border-radius: 10px; position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-width: 300px; transition: 0.5s; box-shadow: 0 4px 15px rgba(0,0,0,0.5);`;
-            toast.innerHTML = `
-                <div style="display:flex; align-items:center; margin-bottom:10px;">
-                    <span style="font-size:24px; margin-right:10px;">${icon}</span>
-                    <strong style="color:${color}; font-size:16px;">${title}</strong>
-                </div>
-                <p style="font-size:13px; line-height:1.4; margin-bottom:12px; color:#e0e0e0;">${desc}</p>
-                <div style="text-align:right;">
-                    <a href="https://mdvh18.com/p/faq.html" target="_blank" style="background:${color}; color:#1a1131; padding:4px 10px; border-radius:15px; text-decoration:none; font-weight:bold; font-size:11px;">XEM FAQ</a>
-                </div>`;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.transform = 'translateX(150%)';
-                setTimeout(() => toast.remove(), 800);
-            }, 8000);
-        }
-
-        init();
-    })();
+            init();
+        })();
     </script>
 </body>
 </html>
+```
