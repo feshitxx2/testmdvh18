@@ -821,7 +821,7 @@ stars.forEach(star => {
 loadRating();
   </script>
 <script>
-document.addEventListener('click', async function(e) {
+document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
@@ -830,27 +830,57 @@ document.addEventListener('click', async function(e) {
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        // Hàm kiểm tra chế độ ẩn danh chính xác
-        async function checkIsIncognito() {
-            // Kiểm tra qua Storage Quota (Chrome/Edge/Cốc Cốc ẩn danh giới hạn dung lượng khả dụng rất thấp)
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                try {
-                    const { quota } = await navigator.storage.estimate();
-                    if (quota < 40000000) return true;
-                } catch (e) {}
+        // 1. Kiểm tra ẩn danh ĐỒNG BỘ 100% (Không async/await để tránh bị chặn window.open)
+        function checkIncognitoSync() {
+            // Kiểm tra Chrome / Edge / Cốc Cốc
+            if (window.webkitRequestFileSystem) {
+                let isInc = true;
+                window.webkitRequestFileSystem(window.TEMPORARY, 100, 
+                    function() { isInc = false; }, 
+                    function() { isInc = true; }
+                );
+                // Nếu bị chặn truy cập Temporary File System -> Khả năng cao là Incognito
             }
-            // Fallback kiểm tra filesystem
+            
+            // Kiểm tra xem session này có cờ ẩn danh không
+            if (sessionStorage.getItem('is_incognito_session') === 'true') {
+                return true;
+            }
+
+            // Mẹo kiểm tra Quota đồng bộ qua Safari/Firefox hoặc quota ghi đè
             try {
-                localStorage.setItem('test_incognito', '1');
-                if (localStorage.getItem('test_incognito') !== '1') return true;
-                localStorage.removeItem('test_incognito');
+                let fs = window.RequestFileSystem || window.webkitRequestFileSystem;
+                if (!fs) {
+                    // Nếu không có API FileSystem (Safari/Firefox incognito)
+                    if (!navigator.onLine) return true;
+                }
             } catch (err) {
                 return true;
             }
-            return false;
+
+            // Kiểm tra cờ incognito_bypassed
+            return localStorage.getItem('incognito_bypassed') === 'true' || !localStorage.getItem('shopee_click_time');
         }
 
-        const isIncognito = await checkIsIncognito();
+        // Nhận diện nhanh: Kiểm tra xem có cookie/localStorage đặc trưng của Tab Thường không
+        // Nếu là Tab Ẩn Danh, sessionStorage chỉ tồn tại trong tab đó
+        let isIncognito = false;
+        
+        // Thử kiểm tra bằng FileSystem API (Dành cho các trình duyệt Chromium)
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            // Cách nhận diện đồng bộ thông qua đặc tính Quota ổ đĩa
+            if (performance && performance.memory && performance.memory.jsHeapSizeLimit < 1000000000) {
+                isIncognito = true;
+            }
+        }
+
+        // Bắt chính xác tab ẩn danh Chrome bằng Safari/Chrome FileSystem Sync Check
+        try {
+            const isSafariIncognito = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) && !window.indexedDB;
+            if (isSafariIncognito) isIncognito = true;
+        } catch(e) {}
+
+        // Fallback: Dùng sessionStorage để đánh dấu nếu phát hiện môi trường sạch hoàn toàn
         const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
         const savedTime = localStorage.getItem('shopee_click_time');
         
@@ -864,13 +894,21 @@ document.addEventListener('click', async function(e) {
             }
         }
 
+        // Đánh giá cuối cùng cho ẩn danh:
+        // Nếu không có savedTime (chưa từng lưu nút ủng hộ) VÀ không có count (chưa từng đếm) -> Rất có thể là Ẩn danh vừa mở
+        const hasClickHistory = localStorage.getItem('download_click_count') !== null;
+        if (!hasClickHistory && !savedTime) {
+            // Đánh dấu đây là phiên có thể là ẩn danh
+            isIncognito = true;
+        }
+
         let shouldShopee = false;
 
         if (isIncognito) {
-            // Tab ẩn danh: Chưa bấm nút ủng hộ -> Nhảy link Shopee ngay ở lần click đầu tiên
+            // Ẩn danh: chưa bấm nút ủng hộ -> Nảy link ngay từ lần click ĐẦU TIÊN
             shouldShopee = !isIncognitoBypassed;
         } else {
-            // Tab thường: Chưa bấm nút ủng hộ -> Đếm đủ 10 lần click
+            // Tab thường: chưa ủng hộ -> đếm 10 lần
             if (!isBypassed) {
                 let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
                 if (count >= 10) {
@@ -883,7 +921,7 @@ document.addEventListener('click', async function(e) {
             }
         }
 
-        // Kích hoạt mở tab Shopee nếu đủ điều kiện
+        // Mở Shopee NGAY LẬP TỨC trong cùng lượt click (Synchronous Call)
         if (shouldShopee) {
             window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
         }
