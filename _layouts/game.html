@@ -824,21 +824,14 @@ loadRating();
   </script>
   <script>
 document.addEventListener('click', function(e) {
-    // Tìm thẻ <a> gần nhất được click
     const link = e.target.closest('a');
-    
-    // Nếu không phải thẻ <a> hoặc không có href thì bỏ qua
     if (!link || !link.href) return;
 
-    // Kiểm tra nếu link dẫn tới trang download.html kèm tham số url
-    if (link.href.includes('download.html?url=')) {
-        e.preventDefault(); // Chặn hành vi mở link mặc định
-
-        // 1. Tải Shopee ở tab mới (Được duyệt 100% vì xuất phát từ click của user)
-        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-
-        // 2. Chuyển tab hiện tại tới trang download
-        window.location.href = link.href;
+    // Bắt đúng link dẫn tới download.html trên trang test
+    if (link.href.includes('/testmdvh18/download.html?url=')) {
+        // Để nguyên cho trình duyệt chuyển hướng tự nhiên sang download.html
+        // Mọi logic kiểm tra Ẩn danh, 7 ngày, 10 lần click sẽ do download.html xử lý.
+        return; 
     }
 });
 </script>
