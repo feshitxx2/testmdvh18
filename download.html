@@ -40,14 +40,16 @@
 </div>
 
 <script>
-(function() {
+document.addEventListener("DOMContentLoaded", function() {
+    // CHỈ CHẠY KHI ĐANG Ở TRANG DOWNLOAD
+    if (!window.location.pathname.includes('download.html')) return;
+
     const shopeeLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
 
     function getRandomShopeeLink() {
         return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
     }
 
-    // 1. Kiểm tra Ẩn danh dựa trên Quota (Ngưỡng 400MB)
     async function checkIncognito() {
         if ('storage' in navigator && 'estimate' in navigator.storage) {
             try {
@@ -67,15 +69,13 @@
         let shouldRedirectToShopee = false;
 
         if (isIncognito) {
-            // ẨN DANH: Bấm 1 lần nhảy ngay Shopee
             if (alertBox) alertBox.style.display = 'block';
             shouldRedirectToShopee = true; 
         } else {
-            // THƯỜNG: Tăng bộ đếm, đủ 10 lần mới nhảy Shopee
             let count = parseInt(localStorage.getItem('test_download_count') || '0') + 1;
             
             if (count >= 10) {
-                localStorage.setItem('test_download_count', '0'); // Đủ 10 lần -> Reset bộ đếm về 0
+                localStorage.setItem('test_download_count', '0');
                 shouldRedirectToShopee = true;
             } else {
                 localStorage.setItem('test_download_count', count.toString());
@@ -101,14 +101,11 @@
                     targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                 }
 
-                // HÀM CHUYỂN HƯỚNG BẮT BỘ ĐẾM
                 const doRedirect = () => {
                     if (shouldRedirectToShopee) {
-                        // Nhảy Shopee: Mở link Game tab mới, Tab hiện tại nhảy Shopee
                         window.open(targetUrl, '_blank');
                         window.location.href = getRandomShopeeLink();
                     } else {
-                        // Chưa đủ 10 lần: Chuyển thẳng sang link Game
                         window.location.href = targetUrl;
                     }
                 };
@@ -127,7 +124,6 @@
                     };
                 }
 
-                // Tự động đếm ngược 3s
                 let timeLeft = 3;
                 const countdown = setInterval(() => {
                     timeLeft--;
@@ -148,7 +144,7 @@
     }
 
     init();
-})();
+});
 </script>
 </body>
 </html>
