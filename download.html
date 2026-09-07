@@ -43,61 +43,61 @@
         return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
     }
 
-    // 1. Kiểm tra Ẩn danh
-    async function checkIncognito() {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            try {
-                const { quota } = await navigator.storage.estimate();
-                return quota < 40000000;
-            } catch (e) {
-                return false;
-            }
+    // 1. Kiểm tra Ẩn danh (Nếu bị chặn Storage = Ẩn danh)
+    function isIncognito() {
+        try {
+            localStorage.setItem('test_incognito_chk', '1');
+            localStorage.removeItem('test_incognito_chk');
+            return false;
+        } catch (e) {
+            return true;
         }
-        return false;
     }
 
-    // 2. Kiểm tra Bypass 7 ngày
-    function check7DaysBypass() {
+    // 2. Kiểm tra trạng thái Bypass 7 ngày (Chỉ kiểm tra, không tự ghi đè)
+    function isBypassed7Days() {
         try {
             const savedTime = localStorage.getItem('shopee_click_time');
+            // Nếu KHÔNG BẤM ủng hộ (không có key) -> Trả về false ngay lập tức
             if (!savedTime) return false;
 
             const now = Date.now();
-            const clickTime = Number(savedTime);
-            const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+            const clickTime = parseInt(savedTime, 10);
+            const sevenDays = 7 * 24 * 60 * 60 * 1000;
 
-            if ((now - clickTime) < sevenDaysInMs) {
-                return true; 
+            if (!isNaN(clickTime) && (now - clickTime) < sevenDays) {
+                return true; // Còn hạn 7 ngày
             } else {
-                localStorage.removeItem('shopee_click_time');
+                localStorage.removeItem('shopee_click_time'); // Hết hạn thì xóa
                 return false;
             }
-        } catch(e) {
+        } catch (e) {
             return false;
         }
     }
 
-    async function init() {
-        const isIncognito = await checkIncognito();
+    function init() {
+        const incognito = isIncognito();
+        const bypassed = isBypassed7Days();
         const alertBox = document.getElementById('incognito-alert');
-        const isBypassed = check7DaysBypass();
 
-        let shouldRedirectToShopee = false;
+        let shouldJumpShopee = false;
 
-        // XÁC ĐỊNH LOGIC
-        if (isIncognito) {
+        if (incognito) {
             if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; // Ẩn danh -> Bắt buộc nhảy
-        } else if (isBypassed === true) {
-            shouldRedirectToShopee = false; // Đã bypass -> Tuyệt đối không nhảy
+            shouldJumpShopee = true; // Ẩn danh -> Bắt buộc nhảy
+        } else if (bypassed) {
+            shouldJumpShopee = false; // Đã ấn ủng hộ -> Bỏ qua Shopee
         } else {
-            let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
-            if (count >= 10) {
+            // Chưa ấn ủng hộ -> Đếm số lần tải
+            let currentCount = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
+            
+            if (currentCount >= 10) {
                 localStorage.setItem('test_download_count', '0');
-                shouldRedirectToShopee = true; // Đủ 10 lần -> Nhảy
+                shouldJumpShopee = true; // Đủ 10 lần -> Nhảy
             } else {
-                localStorage.setItem('test_download_count', count.toString());
-                shouldRedirectToShopee = false;
+                localStorage.setItem('test_download_count', currentCount.toString());
+                shouldJumpShopee = false;
             }
         }
 
@@ -105,29 +105,26 @@
         let encoded = urlParams.get('url');
         const timerEl = document.getElementById('timer');
         const boxEl = document.getElementById('main-box');
-        
-        let targetUrl = "";
 
         if (encoded) {
             try {
                 let cleanEncoded = encoded.trim().replace(/\s/g, '+');
-                targetUrl = atob(cleanEncoded).replace(/[^\x21-\x7E]/g, '').trim();
+                let targetUrl = atob(cleanEncoded).replace(/[^\x21-\x7E]/g, '').trim();
 
-                // Đếm ngược 3 giây tự động nhảy
                 let timeLeft = 3;
                 const countdown = setInterval(() => {
                     timeLeft--;
                     if (timerEl) timerEl.innerText = timeLeft;
-                    
+
                     if (timeLeft <= 0) {
                         clearInterval(countdown);
-                        
-                        if (shouldRedirectToShopee) {
-                            // Mở Game ở tab mới + Tab hiện tại chuyển sang Shopee (Xử lý triệt để Pop-up Blocker)
+
+                        if (shouldJumpShopee) {
+                            // Mở tab Game trước, chuyển tab hiện tại sang Shopee (Không bị chặn Popup)
                             window.open(targetUrl, '_blank');
                             window.location.href = getRandomShopeeLink();
                         } else {
-                            // Không dính Shopee -> Tab hiện tại chuyển thẳng sang link Game
+                            // Không dính Shopee -> Chuyển thẳng sang Game
                             window.location.href = targetUrl;
                         }
                     }
@@ -137,7 +134,7 @@
                 if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ LINK</h3>";
             }
         } else {
-            if (boxEl) boxEl.innerHTML = "<h3>KHÔNG TÌM THẤY THAM SỐ LINK (?url=)</h3>";
+            if (boxEl) boxEl.innerHTML = "<h3>KHÔNG TÌM THẤY THAM SỐ LINK</h3>";
         }
     }
 
