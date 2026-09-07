@@ -825,23 +825,24 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Bỏ qua nếu click nút ủng hộ
+    // Bỏ qua nút ủng hộ
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
         
-        // 1. NHẬN DIỆN TAB ẨN DANH ĐỒNG BỘ
-        function isIncognitoSync() {
-            // Nếu đã đánh dấu là phiên ẩn danh trước đó
+        // 1. Kiểm tra Ẩn Danh chuẩn xác (Chỉ dùng thuộc tính hệ thống đồng bộ)
+        function checkIncognitoStrict() {
             if (sessionStorage.getItem('is_incognito_mode') === 'true') return true;
 
             try {
-                // Kiểm tra FileSystem / Safari Private Mode / IndexedDB
-                const isSafariPrivate = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) && !window.indexedDB;
-                const isChromeIncognito = window.webkitRequestFileSystem && !window.PERSISTENT;
-
-                if (isSafariPrivate || isChromeIncognito) {
+                // Nhận diện Private Mode trên Safari / iOS
+                if (/Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) && !window.indexedDB) {
+                    sessionStorage.setItem('is_incognito_mode', 'true');
+                    return true;
+                }
+                // Nhận diện Incognito Mode trên Chrome / Edge / Cốc Cốc (Chế độ FileSystem tạm)
+                if (window.webkitRequestFileSystem && !window.PERSISTENT) {
                     sessionStorage.setItem('is_incognito_mode', 'true');
                     return true;
                 }
@@ -850,24 +851,14 @@ document.addEventListener('click', function(e) {
                 return true;
             }
 
-            // Mẹo nhận diện ẩn danh qua việc không có dữ liệu lịch sử lâu dài
-            if (!localStorage.getItem('shopee_click_time') && !localStorage.getItem('download_click_count')) {
-                // Nếu là lượt truy cập mới tinh trong sessionStorage
-                if (!sessionStorage.getItem('session_initialized')) {
-                    sessionStorage.setItem('session_initialized', 'true');
-                    sessionStorage.setItem('is_incognito_mode', 'true');
-                    return true;
-                }
-            }
-
-            return sessionStorage.getItem('is_incognito_mode') === 'true';
+            return false;
         }
 
-        const isIncognito = isIncognitoSync();
+        const isIncognito = checkIncognitoStrict();
         let shouldShopee = false;
 
         // ==========================================
-        // LUỒNG 1: TAB ẨN DANH (2 CLICK = 1 QUẢNG CÁO)
+        // LUỒNG 1: TAB ẨN DANH (Đếm 2 Click = 1 Quảng cáo)
         // Bất kể có ấn ủng hộ hay không
         // ==========================================
         if (isIncognito) {
@@ -883,7 +874,7 @@ document.addEventListener('click', function(e) {
         } 
         
         // ==========================================
-        // LUỒNG 2: TAB THƯỜNG (10 CLICK / 7 NGÀY)
+        // LUỒNG 2: TAB THƯỜNG (Mở khóa 7 ngày / Đếm 10 Click)
         // ==========================================
         else {
             const savedTime = localStorage.getItem('shopee_click_time');
@@ -892,13 +883,13 @@ document.addEventListener('click', function(e) {
             if (savedTime) {
                 const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
                 if (diffDays < 7) {
-                    isBypassed = true;
+                    isBypassed = true; // Đã ủng hộ -> Bỏ qua toàn bộ quảng cáo trong 7 ngày
                 } else {
                     localStorage.removeItem('shopee_click_time');
                 }
             }
 
-            // Nếu chưa bấm ủng hộ 7 ngày -> Đếm đủ 10 lần
+            // Nếu chưa bấm ủng hộ -> Đếm đủ 10 lần click mới nhảy 1 quảng cáo
             if (!isBypassed) {
                 let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
                 if (count >= 10) {
@@ -911,7 +902,7 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // 3. THỰC THI MỞ SHOPEE & CHUYỂN TRANG
+        // 3. Thực thi bật Shopee & Điều hướng
         if (shouldShopee) {
             e.preventDefault();
             window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
