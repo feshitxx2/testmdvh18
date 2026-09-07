@@ -457,24 +457,42 @@ const backToTopBtn = document.getElementById('back-to-top');
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
+    // Kiểm tra xem có phải điện thoại hay không
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Kiểm tra Tab ẩn danh
+    function isIncognito() {
+        try {
+            if (!window.indexedDB) return true;
+            return false;
+        } catch (err) {
+            return true;
         }
-        document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
 
+    // Ẩn nút ủng hộ nếu là Tab ẩn danh trên Máy tính (Web)
     if (btn) {
+        if (!isMobile && isIncognito()) {
+            btn.style.display = 'none';
+            return;
+        }
+
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
         btn.onclick = function(e) {
             e.preventDefault();
             e.stopPropagation();
 
             if (errorEl) errorEl.style.display = 'none';
 
-            // Ghi nhận Mở khóa 7 ngày cho Tab thường
             localStorage.setItem('shopee_click_time', Date.now().toString());
             localStorage.setItem('download_click_count', '0');
             setCookie('shopee_unlocked', 'true', 7);
