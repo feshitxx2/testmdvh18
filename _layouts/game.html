@@ -821,6 +821,13 @@ stars.forEach(star => {
 loadRating();
   </script>
 <script>
+// Tự động đánh dấu Tab Thường ngay khi trang tải xong
+(function() {
+    try {
+        localStorage.setItem('is_real_browser', 'true');
+    } catch(err) {}
+})();
+
 document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href || !link.href.includes('download.html?url=')) return;
@@ -837,18 +844,7 @@ document.addEventListener('click', function(e) {
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // KIỂM TRA TAB ẨN DANH THỰC TẾ
-    // Tab ẩn danh mới mở hoặc chuyển trang sẽ KHÔNG THỂ lưu cờ `is_real_browser` bền vững
-    let isNormalBrowser = false;
-    try {
-        if (localStorage.getItem('is_real_browser') === 'true') {
-            isNormalBrowser = true;
-        }
-    } catch(err) {
-        isNormalBrowser = false;
-    }
-
-    // 1. KIỂM TRA TRẠNG THÁI BYPASS
+    // 1. KIỂM TRA TRẠNG THÁI BYPASS (MIỄN QUẢNG CÁO)
     const savedTime = localStorage.getItem('shopee_click_time');
     let isBypassed = false;
 
@@ -866,15 +862,14 @@ document.addEventListener('click', function(e) {
 
     // === XỬ LÝ QUYỀN MIỄN QUẢNG CÁO ===
     if (isMobile) {
-        // Điện thoại: Đã nhảy app hoặc ấn ủng hộ -> Bỏ qua quảng cáo
+        // Điện thoại: Đã nhảy app hoặc đã bấm ủng hộ -> Miễn quảng cáo
         if (isAppOpened || isBypassed || isCookieBypassed) return;
     } else {
-        // Web Máy tính: BẮT BUỘC phải có cờ `isNormalBrowser` VÀ có dấu ủng hộ thì mới cho Bypass
-        // NẾU LÀ TAB ẨN DANH: isNormalBrowser sẽ bằng false -> Không bao giờ thoát quảng cáo
-        if (isNormalBrowser && (isBypassed || isCookieBypassed)) return;
+        // Web Máy tính Tab Thường: Chỉ cần có dấu shopee_click_time hoặc Cookie -> MIỄN QUẢNG CÁO
+        if (isBypassed || isCookieBypassed) return;
     }
 
-    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
+    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5 (CHO TAB ẨN DANH / CHƯA ỦNG HỘ)
     let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
     if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
         targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
