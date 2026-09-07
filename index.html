@@ -451,25 +451,9 @@ const backToTopBtn = document.getElementById('back-to-top');
     {% endfor %}
   ];
 </script>
-<li>
-    <a href="https://mdvh18.github.io/pages/all/">All Game</a>
-</li>
-<li>
-    <a href="#" id="shopee-homepage-btn">Shopee Ủng Hộ</a>
-</li>
-
 <script>
 (function() {
     const shopeeHomepageLinks = [
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
-        "https://s.shopee.vn/1gIPlfm3xz",
         "https://s.shopee.vn/1gIPlfm3xz"
     ];
 
@@ -483,51 +467,51 @@ const backToTopBtn = document.getElementById('back-to-top');
         }
     }
 
+    async function isIncognitoMode() {
+        // 1. Kiểm tra hỗ trợ LocalStorage básicos
+        try {
+            localStorage.setItem('test_incognito', '1');
+            if (localStorage.getItem('test_incognito') !== '1') return true;
+            localStorage.removeItem('test_incognito');
+        } catch (err) {
+            return true;
+        }
+
+        // 2. Kiểm tra Storage Quota (Ngưỡng 40MB chuẩn xác hơn)
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            try {
+                const { quota } = await navigator.storage.estimate();
+                if (quota < 40000000) { // Dưới 40MB là Ẩn danh
+                    return true;
+                }
+            } catch (e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     if (btn) {
-        btn.onclick = function(e) {
+        btn.onclick = async function(e) {
             e.preventDefault();
             if (errorEl) errorEl.style.display = 'none';
 
-            // 1. Kiểm tra xem trình duyệt có cho phép lưu Storage không (Thường ẩn danh sẽ chặn hoặc xóa ngay)
-            let storageSupported = true;
-            try {
-                localStorage.setItem('test_incognito', '1');
-                if (localStorage.getItem('test_incognito') !== '1') storageSupported = false;
-                localStorage.removeItem('test_incognito');
-            } catch (err) {
-                storageSupported = false;
-            }
+            const isIncognito = await isIncognitoMode();
 
-            // 2. Kiểm tra dung lượng Quota để bắt ẩn danh Chrome/Edge/Brave
-            if (!storageSupported) {
-                showError("⚠️ Hãy tắt ẩn danh để mở khóa 7 ngày!");
+            if (isIncognito) {
+                showError("⚠️ Bạn đang bật Ẩn danh. Vui lòng tắt ẩn danh để mở khóa 7 ngày!");
                 return false;
             }
 
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                navigator.storage.estimate().then(({ quota }) => {
-                    if (quota < 120000000) { 
-                        // Dưới 120MB là ẩn danh
-                        showError("⚠️ Bạn đang bật Ẩn danh. Vui lòng dùng cửa sổ thường!");
-                    } else {
-                        // Hợp lệ: Thực hiện lưu và chuyển hướng
-                        localStorage.setItem('shopee_click_time', new Date().getTime().toString());
-                        localStorage.setItem('global_download_count', '0');
-
-                        const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-                        window.open(randomLink, '_blank');
-                    }
-                }).catch(() => {
-                    showError("⚠️ Không thể xác thực trình duyệt!");
-                });
-            } else {
-                // Với trình duyệt cũ không hỗ trợ storage.estimate
+            // Hợp lệ (Cửa sổ thường): Thực hiện ghi nhận Bypass 7 ngày
+            try {
                 localStorage.setItem('shopee_click_time', new Date().getTime().toString());
-                localStorage.setItem('global_download_count', '0');
+                localStorage.setItem('test_download_count', '0'); // Đồng bộ reset bộ đếm về 0
+            } catch(e) {}
 
-                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-                window.open(randomLink, '_blank');
-            }
+            // Mở link Shopee
+            const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+            window.open(randomLink, '_blank');
         };
     }
 })();
