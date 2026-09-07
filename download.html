@@ -43,7 +43,6 @@
 
     <script>
     (function() {
-        // Danh sách 10 link Shopee Random
         const shopeeLinks = [
             "https://shope.ee/link1",
             "https://shope.ee/link2",
@@ -61,30 +60,45 @@
             return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
         }
 
-        // Kiểm tra trạng thái đã click Shopee chưa (có hiệu lực 7 ngày)
+        // Đọc dữ liệu an toàn (thử localStorage trước, nếu lỗi thì dùng cookie/session)
+        function safeGet(key) {
+            try {
+                return localStorage.getItem(key) || sessionStorage.getItem(key);
+            } catch (e) {
+                return sessionStorage.getItem(key);
+            }
+        }
+
+        // Ghi dữ liệu an toàn
+        function safeSet(key, val) {
+            try { localStorage.setItem(key, val); } catch (e) {}
+            try { sessionStorage.setItem(key, val); } catch (e) {}
+        }
+
         function isShopeeBypassed() {
-            const bypassTime = localStorage.getItem('shopee_click_time');
+            const bypassTime = safeGet('shopee_click_time');
             if (!bypassTime) return false;
             const now = new Date().getTime();
             const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
             if (now - parseInt(bypassTime) < sevenDaysInMs) {
                 return true;
             } else {
-                localStorage.removeItem('shopee_click_time');
+                try { localStorage.removeItem('shopee_click_time'); } catch(e){}
+                try { sessionStorage.removeItem('shopee_click_time'); } catch(e){}
                 return false;
             }
         }
 
-        // Xử lý bộ đếm 25 lượt tải
         let shouldRedirectToShopee = false;
         if (!isShopeeBypassed()) {
-            let downloadCount = parseInt(localStorage.getItem('global_download_count') || '0');
+            let downloadCount = parseInt(safeGet('global_download_count') || '0');
             downloadCount++;
+            
             if (downloadCount >= 25) {
-                localStorage.setItem('global_download_count', '0');
+                safeSet('global_download_count', '0');
                 shouldRedirectToShopee = true;
             } else {
-                localStorage.setItem('global_download_count', downloadCount.toString());
+                safeSet('global_download_count', downloadCount.toString());
             }
         }
 
@@ -107,7 +121,6 @@
                     targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
                 }
 
-                // Nếu đạt mốc 25 lượt và chưa bypass, ghi đè link đích thành link Shopee random
                 if (shouldRedirectToShopee) {
                     targetUrl = getRandomShopeeLink();
                 }
@@ -121,7 +134,6 @@
                     setTimeout(() => window.location.replace(url), 300);
                 };
 
-                // Gán sự kiện cho nút Tiếp tục ngay
                 if (fastBtn) {
                     fastBtn.onclick = () => redirectNow(targetUrl);
                 }
@@ -146,7 +158,7 @@
                     
                     if (timeLeft <= 0) {
                         clearInterval(countdown);
-                        if (fastBtn) fastBtn.style.display = 'none'; // Ẩn nút nhanh khi đã hết giờ
+                        if (fastBtn) fastBtn.style.display = 'none';
                         if (manualBtn) {
                             manualBtn.href = targetUrl;
                             manualBtn.style.display = 'inline-block';
