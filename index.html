@@ -474,14 +474,10 @@ const backToTopBtn = document.getElementById('back-to-top');
 
             if (errorEl) errorEl.style.display = 'none';
 
-            // Lưu dữ liệu mở khóa cho tab thường
+            // Chỉ lưu trạng thái mở khóa cho Tab thường
             localStorage.setItem('shopee_click_time', Date.now().toString());
             localStorage.setItem('download_click_count', '0');
             setCookie('shopee_unlocked', 'true', 7);
-
-            // Bỏ lưu incognito_bypassed để tab ẩn danh không tính việc đã bấm nút ủng hộ
-            localStorage.removeItem('incognito_bypassed');
-            setCookie('incognito_bypassed', '', -1);
 
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
