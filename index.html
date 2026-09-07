@@ -459,59 +459,59 @@ const backToTopBtn = document.getElementById('back-to-top');
 
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Hàm kiểm tra ẩn danh qua dung lượng Storage
-    function handleIncognitoCheck(callback) {
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            navigator.storage.estimate().then(function(estimate) {
-                // Dung lượng Quota của Incognito trên Chromium luôn < 120MB
-                const isIncognito = estimate.quota < 120000000;
-                callback(isIncognito);
-            }).catch(function() {
-                callback(false);
-            });
-        } else {
-            callback(!window.indexedDB);
+    // Kiểm tra tab ẩn danh bằng cách thử ghi dữ liệu / kiểm tra bộ nhớ cô lập
+    function isIncognitoMode() {
+        try {
+            // Kiểm tra Safari Private / Chrome Incognito storage restriction
+            localStorage.setItem('test_incognito', '1');
+            localStorage.removeItem('test_incognito');
+            
+            // Nếu không ghi được cookie hoặc bị cô lập session
+            if (navigator.storage && navigator.storage.estimate) {
+                // Kiểm tra đồng bộ hạn mức nếu khả thi
+                return false; 
+            }
+            return false;
+        } catch (e) {
+            return true; // Bị chặn storage -> 100% Tab ẩn danh
         }
     }
 
     if (btn) {
-        handleIncognitoCheck(function(isIncognito) {
-            // Nếu là Tab ẩn danh trên Máy tính (Web) -> Ẩn thẻ <li>
-            if (!isMobile && isIncognito) {
-                const parentLi = btn.closest('li');
-                if (parentLi) {
-                    parentLi.style.display = 'none';
-                } else {
-                    btn.style.display = 'none';
-                }
-                return;
+        const parentLi = btn.closest('li') || btn;
+
+        // Nếu là Máy tính (PC) VÀ là Tab ẩn danh -> Ẩn ngay lập tức
+        if (!isMobile && isIncognitoMode()) {
+            parentLi.style.display = 'none';
+            return;
+        }
+
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
             }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
 
-            // Môi trường hợp lệ -> Gán sự kiện click
-            function setCookie(name, value, days) {
-                let expires = "";
-                if (days) {
-                    const date = new Date();
-                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                    expires = "; expires=" + date.toUTCString();
-                }
-                document.cookie = name + "=" + (value || "") + expires + "; path=/";
-            }
+        btn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-            btn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
+            if (errorEl) errorEl.style.display = 'none';
 
-                if (errorEl) errorEl.style.display = 'none';
-
+            try {
                 localStorage.setItem('shopee_click_time', Date.now().toString());
                 localStorage.setItem('download_click_count', '0');
-                setCookie('shopee_unlocked', 'true', 7);
+            } catch(err) {}
 
-                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-                window.open(randomLink, '_blank');
-            };
-        });
+            setCookie('shopee_unlocked', 'true', 7);
+
+            const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+            window.open(randomLink, '_blank');
+        };
     }
 })();
 </script>
