@@ -839,7 +839,6 @@ document.addEventListener('click', function(e) {
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // 1. KIỂM TRA TRẠNG THÁI MỞ KHÓA (BYPASS)
-    // Chỉ chấp nhận bypass nếu kiểm tra được dữ liệu lưu bền vững (Đặc trưng của Tab thường)
     const savedTime = localStorage.getItem('shopee_click_time');
     let isBypassed = false;
 
@@ -852,7 +851,7 @@ document.addEventListener('click', function(e) {
         }
     }
     
-    // Cookie kiểm tra song song cho Tab thường
+    // Cookie kiểm tra cho Tab thường
     const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
 
     // Đã từng nhảy sang App Shopee trên điện thoại chưa
@@ -866,16 +865,13 @@ document.addEventListener('click', function(e) {
         }
     } else {
         // TRÊN MÁY TÍNH (WEB):
-        // Kiểm tra xem có dấu xác thực "Tab Thường Bền Vững" hay không
-        // Nếu không có dấu này (tức là tab ẩn danh hoặc chưa xác thực) -> Bỏ qua Bypass, bắt buộc nhảy quảng cáo
-        const isNormalSession = localStorage.getItem('is_normal_browser') === 'true';
-
-        if (isNormalSession && (isBypassed || isCookieBypassed)) {
-            return; // Chỉ Tab thường mới được thoát quảng cáo
+        // Nếu có dấu lưu shopee_click_time hoặc Cookie từ nút Ủng hộ -> MIỄN QUẢNG CÁO
+        if (isBypassed || isCookieBypassed) {
+            return;
         }
     }
 
-    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5 (GIỮ NGUYÊN)
+    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
     let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
     if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
         targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3; // Random 3, 4 hoặc 5
@@ -911,5 +907,5 @@ document.addEventListener('click', function(e) {
         window.location.href = nextUrl.toString();
     }
 });
-</script> 
+</script>
 </html>
