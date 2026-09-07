@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Đang Chuyển Hướng An Toàn... | MDVH18 Test</title>
+<title>Đang Chuyển Hướng... | MDVH18 Test</title>
 <style>
-    body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-    .box { text-align: center; background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 0 30px rgba(215, 155, 187, 0.2); max-width: 400px; width: 90%; }
+    body { background: #0f0c29; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+    .box { text-align: center; background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); max-width: 400px; width: 90%; }
     .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #f78f90; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #timer { font-size: 3em; color: #d79bbb; font-weight: bold; margin: 10px 0; }
-    .btn-fast { display: inline-block; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; transition: 0.3s; cursor: pointer; border: 1px solid #f78f90; font-family: inherit; font-size: 0.9em; }
-    .btn-fast:hover { background: #fff; color: #f78f90; box-shadow: 0 0 15px #f78f90; }
+    .btn-fast { display: inline-block; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; cursor: pointer; border: 1px solid #f78f90; }
     .incognito-notice { background: rgba(255, 193, 7, 0.2); border: 1px dashed #ffc107; color: #ffe082; padding: 10px 14px; border-radius: 10px; font-size: 0.9em; margin-bottom: 15px; display: none; font-weight: bold; }
 </style>
 </head>
@@ -37,12 +36,11 @@
         return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
     }
 
-    // Kiểm tra Ẩn danh dựa trên Quota Storage (Ngưỡng 400MB)
     async function checkIncognito() {
         if ('storage' in navigator && 'estimate' in navigator.storage) {
             try {
                 const { quota } = await navigator.storage.estimate();
-                return quota < 400000000;
+                return quota < 40000000;
             } catch (e) {
                 return false;
             }
@@ -50,17 +48,20 @@
         return false;
     }
 
-    // Kiểm tra đã Bypass 7 ngày chưa
-    function isShopeeBypassed() {
+    // HÀM KIỂM TRA KHÓA 7 NGÀY
+    function check7DaysBypass() {
         try {
-            const bypassTime = localStorage.getItem('shopee_click_time');
-            if (!bypassTime) return false;
+            const savedTime = localStorage.getItem('shopee_click_time');
+            if (!savedTime) return false;
+
             const now = new Date().getTime();
+            const clickTime = parseInt(savedTime, 10);
             const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
-            if ((now - parseInt(bypassTime)) < sevenDaysInMs) {
-                return true;
+
+            if (now - clickTime < sevenDaysInMs) {
+                return true; // Đã click trong vòng 7 ngày -> MIỄN SHOPEE
             } else {
-                localStorage.removeItem('shopee_click_time');
+                localStorage.removeItem('shopee_click_time'); // Quá 7 ngày -> Xóa bỏ
                 return false;
             }
         } catch(e) {
@@ -71,21 +72,18 @@
     async function init() {
         const isIncognito = await checkIncognito();
         const alertBox = document.getElementById('incognito-alert');
-        const hasBypassed = isShopeeBypassed();
+        const isBypassed = check7DaysBypass();
 
         let shouldRedirectToShopee = false;
 
         if (isIncognito) {
-            // 1. CHẾ ĐỘ ẨN DANH: Bật thông báo & 1 click 1 quảng cáo
             if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; 
-        } else if (hasBypassed) {
-            // 2. ĐÃ BYPASS 7 NGÀY (Từ trang chủ): Không nhảy Shopee
-            shouldRedirectToShopee = false;
+            shouldRedirectToShopee = true; // Ẩn danh: BẮT BUỘC NHẢY
+        } else if (isBypassed) {
+            shouldRedirectToShopee = false; // Đã click trang chủ < 7 ngày: KHÔNG NHẢY
         } else {
-            // 3. CHẾ ĐỘ THƯỜNG: Đủ 10 click mới nhảy Shopee 1 lần
+            // Chưa click trang chủ: Đếm 10 lần
             let count = parseInt(localStorage.getItem('test_download_count') || '0') + 1;
-            
             if (count >= 10) {
                 localStorage.setItem('test_download_count', '0');
                 shouldRedirectToShopee = true;
@@ -108,13 +106,8 @@
                 let cleanEncoded = encoded.trim().replace(/\s/g, '+');
                 targetUrl = atob(cleanEncoded).replace(/[^\x21-\x7E]/g, '').trim();
 
-                if (targetUrl.includes('mdvh18.com/mdvh18/')) {
-                    targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
-                }
-
                 const doRedirect = () => {
                     if (shouldRedirectToShopee) {
-                        // Kích hoạt Quảng cáo Shopee ở Tab mới
                         const shopeeAnchor = document.createElement('a');
                         shopeeAnchor.href = getRandomShopeeLink();
                         shopeeAnchor.target = '_blank';
@@ -122,8 +115,6 @@
                         document.body.appendChild(shopeeAnchor);
                         shopeeAnchor.click();
                     }
-
-                    // Tab hiện tại luôn nhảy sang link Game
                     window.location.href = targetUrl;
                 };
 
@@ -134,7 +125,6 @@
                     };
                 }
 
-                // Tự động đếm ngược 3 giây
                 let timeLeft = 3;
                 const countdown = setInterval(() => {
                     timeLeft--;
@@ -147,10 +137,10 @@
                 }, 1000);
 
             } catch (e) {
-                if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ</h3><p>Link không hợp lệ.</p>";
+                if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ</h3>";
             }
         } else {
-            if (boxEl) boxEl.innerHTML = "<h3>LỖI ĐƯỜNG DẪN</h3><p>Không tìm thấy liên kết.</p>";
+            if (boxEl) boxEl.innerHTML = "<h3>LỖI ĐƯỜNG DẪN</h3>";
         }
     }
 
