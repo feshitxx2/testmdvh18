@@ -818,47 +818,38 @@ stars.forEach(star => {
         }
     });
 });
-
-// Kích hoạt chạy tải dữ liệu ngay khi mở bài viết lên
 loadRating();
   </script>
- <script>
-
+<script>
 document.addEventListener('click', function(e) {
-
-    // Tìm thẻ <a> gần nhất được click
-
     const link = e.target.closest('a');
-
-    
-
-    // Nếu không phải thẻ <a> hoặc không có href thì bỏ qua
-
     if (!link || !link.href) return;
 
-
-
-    // Kiểm tra nếu link dẫn tới trang download.html kèm tham số url
+    // Bỏ qua nếu click trúng nút ủng hộ (nếu nút ủng hộ nằm chung trang)
+    const btn = document.getElementById('shopee-homepage-btn');
+    if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
+        // Kiểm tra xem user này đã bấm ủng hộ và còn trong hạn 7 ngày không
+        const savedTime = localStorage.getItem('shopee_click_time');
+        let hasUnlocked = false;
 
-        e.preventDefault(); // Chặn hành vi mở link mặc định
+        if (savedTime) {
+            const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+            if (diffDays < 7) {
+                hasUnlocked = true; // Đã ủng hộ và còn hạn 7 ngày
+            } else {
+                localStorage.removeItem('shopee_click_time'); // Hết hạn -> xóa
+            }
+        }
 
-
-
-        // 1. Tải Shopee ở tab mới (Được duyệt 100% vì xuất phát từ click của user)
-
-        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-
-
-
-        // 2. Chuyển tab hiện tại tới trang download
-
-        window.location.href = link.href;
-
+        // Nếu chưa ủng hộ -> Mới bật link Shopee
+        if (!hasUnlocked) {
+            e.preventDefault();
+            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+            window.location.href = link.href;
+        }
     }
-
 });
-
 </script>
 </html>
