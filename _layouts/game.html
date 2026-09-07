@@ -825,65 +825,24 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Bỏ qua nếu click nút ủng hộ
+    // Bỏ qua nếu click vào nút ủng hộ
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        // 1. Kiểm tra ẩn danh ĐỒNG BỘ 100% (Không async/await để tránh bị chặn window.open)
-        function checkIncognitoSync() {
-            // Kiểm tra Chrome / Edge / Cốc Cốc
-            if (window.webkitRequestFileSystem) {
-                let isInc = true;
-                window.webkitRequestFileSystem(window.TEMPORARY, 100, 
-                    function() { isInc = false; }, 
-                    function() { isInc = true; }
-                );
-                // Nếu bị chặn truy cập Temporary File System -> Khả năng cao là Incognito
-            }
-            
-            // Kiểm tra xem session này có cờ ẩn danh không
-            if (sessionStorage.getItem('is_incognito_session') === 'true') {
-                return true;
-            }
-
-            // Mẹo kiểm tra Quota đồng bộ qua Safari/Firefox hoặc quota ghi đè
-            try {
-                let fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-                if (!fs) {
-                    // Nếu không có API FileSystem (Safari/Firefox incognito)
-                    if (!navigator.onLine) return true;
-                }
-            } catch (err) {
-                return true;
-            }
-
-            // Kiểm tra cờ incognito_bypassed
-            return localStorage.getItem('incognito_bypassed') === 'true' || !localStorage.getItem('shopee_click_time');
-        }
-
-        // Nhận diện nhanh: Kiểm tra xem có cookie/localStorage đặc trưng của Tab Thường không
-        // Nếu là Tab Ẩn Danh, sessionStorage chỉ tồn tại trong tab đó
+        // 1. Nhận diện ẩn danh chuẩn (Không đoán mò gây ảnh hưởng tab thường)
         let isIncognito = false;
-        
-        // Thử kiểm tra bằng FileSystem API (Dành cho các trình duyệt Chromium)
-        if ('storage' in navigator && 'estimate' in navigator.storage) {
-            // Cách nhận diện đồng bộ thông qua đặc tính Quota ổ đĩa
-            if (performance && performance.memory && performance.memory.jsHeapSizeLimit < 1000000000) {
+        try {
+            // Safari / Chrome Incognito Check qua Storage Quota & FileSystem
+            if (!window.indexedDB || (window.webkitRequestFileSystem && !window.PERSISTENT)) {
                 isIncognito = true;
             }
+        } catch(err) {
+            isIncognito = true;
         }
 
-        // Bắt chính xác tab ẩn danh Chrome bằng Safari/Chrome FileSystem Sync Check
-        try {
-            const isSafariIncognito = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent) && !window.indexedDB;
-            if (isSafariIncognito) isIncognito = true;
-        } catch(e) {}
-
-        // Fallback: Dùng sessionStorage để đánh dấu nếu phát hiện môi trường sạch hoàn toàn
-        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
+        // 2. Kiểm tra trạng thái đã ủng hộ (7 ngày)
         const savedTime = localStorage.getItem('shopee_click_time');
-        
         let isBypassed = false;
         if (savedTime) {
             const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
@@ -894,21 +853,15 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // Đánh giá cuối cùng cho ẩn danh:
-        // Nếu không có savedTime (chưa từng lưu nút ủng hộ) VÀ không có count (chưa từng đếm) -> Rất có thể là Ẩn danh vừa mở
-        const hasClickHistory = localStorage.getItem('download_click_count') !== null;
-        if (!hasClickHistory && !savedTime) {
-            // Đánh dấu đây là phiên có thể là ẩn danh
-            isIncognito = true;
-        }
-
+        const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
         let shouldShopee = false;
 
+        // 3. Xử lý logic đếm Lượt Click
         if (isIncognito) {
-            // Ẩn danh: chưa bấm nút ủng hộ -> Nảy link ngay từ lần click ĐẦU TIÊN
+            // Tab Ẩn danh: Nếu chưa bấm ủng hộ -> 1 click nảy ngay Shopee
             shouldShopee = !isIncognitoBypassed;
         } else {
-            // Tab thường: chưa ủng hộ -> đếm 10 lần
+            // Tab Thường: Nếu chưa ủng hộ -> Đếm đủ 10 lần
             if (!isBypassed) {
                 let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
                 if (count >= 10) {
@@ -921,9 +874,11 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // Mở Shopee NGAY LẬP TỨC trong cùng lượt click (Synchronous Call)
+        // 4. Nếu đủ điều kiện quảng cáo: Mở Shopee tab mới + Ép tab hiện tại chuyển sang link download
         if (shouldShopee) {
+            e.preventDefault(); // Ngăn trình duyệt tự nhảy mặc định để xử lý chủ động
             window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+            window.location.href = link.href; // Điều hướng tab hiện tại sang download.html
         }
     }
 });
