@@ -17,7 +17,7 @@ phienban: "Ep.2 P2"
 dev: "Seacth"
 genre: "3DCG, Animated, Big ass, Big tits, Harem, Incest, Male protagonist, Milf, Mobile game, Oral sex, Romance, Pregnancy, Vaginal sex"
 
-linkpixelapk: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L0Y1cUc0WWY2"
-linkpixelpc: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L3pnWFlDMkg3"
-linkteraapkpc: "https://mdvh18.github.io/download.html?url=aHR0cHM6Ly8xMDI0dGVyYWJveC5jb20vcy8xWGhycWthNk1FMHl3MVhFSkwxVTR1UQ=="
+linkpixelapk: "https://mdvh18.com/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L0Y1cUc0WWY2"
+linkpixelpc: "https://mdvh18.com/download.html?url=aHR0cHM6Ly9waXhlbGRyYWluLmNvbS91L3pnWFlDMkg3"
+linkteraapkpc: "https://mdvh18.com/download.html?url=aHR0cHM6Ly8xMDI0dGVyYWJveC5jb20vcy8xWGhycWthNk1FMHl3MVhFSkwxVTR1UQ=="
 ---
