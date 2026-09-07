@@ -836,75 +836,73 @@ document.addEventListener('click', function(e) {
             return null;
         }
 
-        // Kiểm tra xem có đang ở chế độ ẩn danh hay không
-        async function checkIncognito() {
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                const { quota } = await navigator.storage.estimate();
-                return quota < 120000000; // Ngưỡng dung lượng Storage của Incognito
+        // Kiểm tra tab ẩn danh đồng bộ
+        function isIncognitoSync() {
+            try {
+                // Trên Chromium/Chrome, quota FS trong Incognito giới hạn rất nhỏ hoặc FileSystem API bị chặn
+                return !window.indexedDB || /Incognito/i.test(navigator.userAgent);
+            } catch (err) {
+                return true;
             }
-            return false;
         }
 
-        checkIncognito().then(isIncognito => {
-            if (isIncognito) {
-                // --- XỬ LÝ RIÊNG CHO TAB ẨN DANH (2 CLICK / 1 QUẢNG CÁO) ---
-                const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true' || getCookie('incognito_bypassed') === 'true';
-                
-                // Nếu đã bấm nút ủng hộ ở trang chủ thì bỏ qua
-                if (isIncognitoBypassed) return;
+        // Phát hiện nhanh dựa trên việc Storage bị giới hạn hoặc kiểm tra tính khả thi của FileSystem
+        const isIncognito = isIncognitoSync() || (window.webkitRequestFileSystem ? true : false);
 
-                let incognitoCount = parseInt(localStorage.getItem('incognito_download_click_count') || '0', 10) + 1;
-                
-                if (incognitoCount >= 2) {
-                    localStorage.setItem('incognito_download_click_count', '0');
-                    e.preventDefault();
-                    window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-                    window.location.href = link.href;
-                } else {
-                    localStorage.setItem('incognito_download_click_count', incognitoCount.toString());
-                }
+        if (isIncognito) {
+            // === TAB ẨN DANH: 2 CLICK / 1 QUẢNG CÁO (BỎ QUA NÚT ỦNG HỘ) ===
+            let incognitoCount = parseInt(localStorage.getItem('incognito_download_click_count') || '0', 10) + 1;
+
+            if (incognitoCount >= 2) {
+                localStorage.setItem('incognito_download_click_count', '0');
+                e.preventDefault();
+                window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+                window.location.href = link.href;
             } else {
-                // --- XỬ LÝ RIÊNG CHO TAB THƯỜNG ---
-                const savedTime = localStorage.getItem('shopee_click_time');
-                let isBypassed = false;
-                if (savedTime) {
-                    const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
-                    if (diffDays < 7) {
-                        isBypassed = true;
-                    } else {
-                        localStorage.removeItem('shopee_click_time');
-                    }
-                }
-
-                const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-
-                if (isBypassed || isCookieBypassed) return;
-
-                const isFirstClickInSession = !getCookie('session_started');
-                let shouldShopee = false;
-
-                if (isFirstClickInSession) {
-                    document.cookie = "session_started=true; path=/";
-                    shouldShopee = true;
-                    localStorage.setItem('download_click_count', '1');
+                localStorage.setItem('incognito_download_click_count', incognitoCount.toString());
+            }
+        } else {
+            // === TAB THƯỜNG: 10 CLICK / 1 QUẢNG CÁO (CÓ ÁP DỤNG NÚT ỦNG HỘ) ===
+            const savedTime = localStorage.getItem('shopee_click_time');
+            let isBypassed = false;
+            if (savedTime) {
+                const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+                if (diffDays < 7) {
+                    isBypassed = true;
                 } else {
-                    let count = parseInt(localStorage.getItem('download_click_count') || '1', 10) + 1;
-                    if (count >= 10) {
-                        localStorage.setItem('download_click_count', '0');
-                        shouldShopee = true;
-                    } else {
-                        localStorage.setItem('download_click_count', count.toString());
-                        shouldShopee = false;
-                    }
-                }
-
-                if (shouldShopee) {
-                    e.preventDefault();
-                    window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-                    window.location.href = link.href;
+                    localStorage.removeItem('shopee_click_time');
                 }
             }
-        });
+
+            const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
+
+            // Nếu đã bấm nút ủng hộ ở tab thường thì bỏ qua quảng cáo
+            if (isBypassed || isCookieBypassed) return;
+
+            const isFirstClickInSession = !getCookie('session_started');
+            let shouldShopee = false;
+
+            if (isFirstClickInSession) {
+                document.cookie = "session_started=true; path=/";
+                shouldShopee = true;
+                localStorage.setItem('download_click_count', '1');
+            } else {
+                let count = parseInt(localStorage.getItem('download_click_count') || '1', 10) + 1;
+                if (count >= 10) {
+                    localStorage.setItem('download_click_count', '0');
+                    shouldShopee = true;
+                } else {
+                    localStorage.setItem('download_click_count', count.toString());
+                    shouldShopee = false;
+                }
+            }
+
+            if (shouldShopee) {
+                e.preventDefault();
+                window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+                window.location.href = link.href;
+            }
+        }
     }
 });
 </script>
