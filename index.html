@@ -479,7 +479,7 @@ const backToTopBtn = document.getElementById('back-to-top');
         if ('storage' in navigator && 'estimate' in navigator.storage) {
             try {
                 const { quota } = await navigator.storage.estimate();
-                if (quota < 40000000) return true;
+                if (quota < 40000000) return true; // Dưới 40MB là Ẩn danh
             } catch (e) {
                 return false;
             }
@@ -499,17 +499,17 @@ const backToTopBtn = document.getElementById('back-to-top');
                 return false;
             }
 
-            // GHI DỮ LIỆU BYPASS (Lưu timestamp hiện tại)
-            const currentTime = new Date().getTime().toString();
+            // GHI DỮ LIỆU BYPASS (Lưu Timestamp chính xác)
+            const currentTime = Date.now().toString();
             localStorage.setItem('shopee_click_time', currentTime);
-            localStorage.setItem('test_download_count', '0');
+            localStorage.setItem('test_download_count', '0'); // Reset bộ đếm về 0
+
+            console.log("Đã lưu shopee_click_time:", currentTime);
 
             // Mở link Shopee
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
         };
     }
-})();
-</script>
 })();
 </script>
