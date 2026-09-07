@@ -457,7 +457,7 @@ const backToTopBtn = document.getElementById('back-to-top');
     const btn = document.getElementById('shopee-homepage-btn');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    // Kiểm tra xem có phải điện thoại hay không
+    // Kiểm tra thiết bị di động
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
     // Kiểm tra Tab ẩn danh
@@ -470,10 +470,15 @@ const backToTopBtn = document.getElementById('back-to-top');
         }
     }
 
-    // Ẩn nút ủng hộ nếu là Tab ẩn danh trên Máy tính (Web)
     if (btn) {
+        // Nếu là Tab ẩn danh trên Máy tính (Web) -> Ẩn toàn bộ thẻ <li>
         if (!isMobile && isIncognito()) {
-            btn.style.display = 'none';
+            const parentLi = btn.closest('li');
+            if (parentLi) {
+                parentLi.style.display = 'none';
+            } else {
+                btn.style.display = 'none';
+            }
             return;
         }
 
