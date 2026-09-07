@@ -824,7 +824,6 @@ loadRating();
 document.addEventListener('click', async function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href || !link.href.includes('download.html?url=')) return;
-
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
@@ -835,111 +834,86 @@ document.addEventListener('click', async function(e) {
         return null;
     }
 
+    // Kiểm tra thiết bị Điện thoại
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // ==========================================
-    // KHU VỰC 1: XỬ LÝ CHO ĐIỆN THOẠI (MOBILE)
-    // ==========================================
-    if (isMobile) {
-        const isAppOpened = localStorage.getItem('shopee_app_opened') === 'true';
-        const savedTime = localStorage.getItem('shopee_click_time');
-        let isBypassed = false;
-
-        if (savedTime) {
-            const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
-            if (diffDays < 7) isBypassed = true;
-        }
-
-        const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-
-        if (isAppOpened || isBypassed || isCookieBypassed) {
-            return;
-        }
-    } 
-    // ==========================================
-    // KHU VỰC 2: XỬ LÝ CHO MÁY TÍNH (PC WEB)
-    // ==========================================
-    else {
-        // Hàm kiểm tra tab ẩn danh trên PC chính xác bằng Storage Quota
-        async function isIncognitoPC() {
-            try {
-                if (navigator.storage && navigator.storage.estimate) {
-                    const { quota } = await navigator.storage.estimate();
-                    // Tab ẩn danh trên Chromium luôn có Quota cực thấp (< 120MB)
-                    return quota < 120000000;
-                }
-                return !window.indexedDB;
-            } catch (err) {
-                return true;
+    // Kiểm tra Tab Ẩn Danh (dựa trên quota storage - đáng tin hơn indexedDB)
+    async function checkIncognito() {
+        try {
+            if (navigator.storage && navigator.storage.estimate) {
+                const { quota } = await navigator.storage.estimate();
+                // Tab thường thường có quota rất lớn (hàng GB)
+                // Tab ẩn danh (Chrome/Edge) thường bị giới hạn dưới ~120MB
+                return quota < 120000000;
             }
-        }
-
-        const isIncognito = await isIncognitoPC();
-
-        if (isIncognito) {
-            // ------------------------------------------
-            // NHÁNH 1: TAB ẨN DANH TRÊN PC
-            // ------------------------------------------
-            // Tuyệt đối không kiểm tra Cookie hay localStorage ủng hộ.
-            // Bắt buộc phải chạy xuống Khu Vực 3 đếm click dính quảng cáo.
-        } 
-        else {
-            // ------------------------------------------
-            // NHÁNH 2: TAB THƯỜNG TRÊN PC
-            // ------------------------------------------
-            const savedTime = localStorage.getItem('shopee_click_time');
-            let isBypassed = false;
-
-            if (savedTime) {
-                const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
-                if (diffDays < 7) {
-                    isBypassed = true;
-                } else {
-                    localStorage.removeItem('shopee_click_time');
-                }
-            }
-
-            const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-
-            // Tab thường đã ấn Ủng hộ -> Cho qua luôn không dính quảng cáo
-            if (isBypassed || isCookieBypassed) {
-                return;
-            }
+            return false; // fallback cho trình duyệt cũ không hỗ trợ Storage API
+        } catch (err) {
+            return true;
         }
     }
 
-    // ==========================================
-    // KHU VỰC 3: ĐẾM CLICK VÀ BẬT ADS (3 - 5 CLICK)
-    // (Dành cho Mobile chưa pass, Tab ẩn danh PC, và Tab thường PC chưa ủng hộ)
-    // ==========================================
+    // Chỉ cần check incognito trên máy tính, mobile giữ nguyên logic cũ
+    const isIncognito = isMobile ? false : await checkIncognito();
+
+    // 1. KIỂM TRA TRẠNG THÁI MỞ KHÓA (BYPASS)
+    const savedTime = localStorage.getItem('shopee_click_time');
+    let isBypassed = false;
+    if (savedTime) {
+        const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+        if (diffDays < 7) {
+            isBypassed = true;
+        } else {
+            localStorage.removeItem('shopee_click_time');
+        }
+    }
+    const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
+
+    // Đã từng nhảy sang App Shopee trên điện thoại chưa
+    const isAppOpened = localStorage.getItem('shopee_app_opened') === 'true';
+
+    // === XỬ LÝ LOGIC MIỄN QUẢNG CÁO ===
+    if (isMobile) {
+        // TRÊN ĐIỆN THOẠI: Đã nhảy sang App Shopee thành công hoặc đã ấn Ủng hộ -> MIỄN QUẢNG CÁO
+        if (isAppOpened || isBypassed || isCookieBypassed) {
+            return;
+        }
+    } else {
+        // TRÊN MÁY TÍNH (WEB):
+        // - Tab ẩn danh: KỂ CẢ BẤM ỦNG HỘ VẪN BỊ QUẢNG CÁO (không thoát)
+        // - Tab thường: Bấm ủng hộ thì mới được miễn
+        if (!isIncognito && (isBypassed || isCookieBypassed)) {
+            return;
+        }
+    }
+
+    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
     let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
     if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
-        targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
-        try { localStorage.setItem('shopee_target_clicks', targetClicks.toString()); } catch(err) {}
+        targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3; // Random 3, 4 hoặc 5
+        localStorage.setItem('shopee_target_clicks', targetClicks.toString());
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     let currentClick = parseInt(urlParams.get('shopee_cnt') || localStorage.getItem('download_click_count') || '0', 10) + 1;
 
     if (currentClick >= targetClicks) {
-        try {
-            localStorage.setItem('download_click_count', '0');
-            localStorage.removeItem('shopee_target_clicks');
-            if (isMobile) localStorage.setItem('shopee_app_opened', 'true');
-        } catch(err) {}
-
+        // ĐỦ CLICK -> BẬT SHOPEE
+        localStorage.setItem('download_click_count', '0');
+        localStorage.removeItem('shopee_target_clicks');
+        // Nếu là điện thoại thì lưu dấu đã mở App thành công để các lần sau không bị quảng cáo nữa
+        if (isMobile) {
+            localStorage.setItem('shopee_app_opened', 'true');
+        }
         e.preventDefault();
         window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-
         const cleanUrl = new URL(link.href);
         cleanUrl.searchParams.delete('shopee_cnt');
         window.location.href = cleanUrl.toString();
     } else {
-        try { localStorage.setItem('download_click_count', currentClick.toString()); } catch(err) {}
-
+        // CHƯA ĐỦ CLICK -> LƯU VÀO URL ĐỂ DÙNG CHO CẢ TAB ẨN DANH
+        localStorage.setItem('download_click_count', currentClick.toString());
         const nextUrl = new URL(link.href);
         nextUrl.searchParams.set('shopee_cnt', currentClick.toString());
-
         e.preventDefault();
         window.location.href = nextUrl.toString();
     }
