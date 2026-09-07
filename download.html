@@ -10,14 +10,12 @@
     .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #f78f90; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #timer { font-size: 3em; color: #d79bbb; font-weight: bold; margin: 10px 0; }
-    .incognito-notice { background: rgba(255, 193, 7, 0.2); border: 1px dashed #ffc107; color: #ffe082; padding: 10px 14px; border-radius: 10px; font-size: 0.9em; margin-bottom: 15px; display: none; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="box" id="main-box">
     <div class="loader"></div>
-    <div id="incognito-alert" class="incognito-notice">🕵️ Bạn đang ở chế độ ẩn danh!</div>
     <h3>ĐANG KẾT NỐI MÁY CHỦ TẢI GAME</h3>
     <p>Tự động chuyển hướng sau giây lát...</p>
     <div id="timer">3</div>
@@ -25,117 +23,33 @@
 
 <script>
 (function() {
-    if (window.__downloadTestScriptLoaded) return;
-    window.__downloadTestScriptLoaded = true;
+    const urlParams = new URLSearchParams(window.location.search);
+    let encoded = urlParams.get('url');
+    const timerEl = document.getElementById('timer');
+    const boxEl = document.getElementById('main-box');
 
-    const shopeeLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
-
-    function getRandomShopeeLink() {
-        return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
-    }
-
-    // 1. Kiểm tra Ẩn danh qua Storage
-    function checkIncognito() {
+    if (encoded) {
         try {
-            localStorage.setItem('test_incognito_chk', '1');
-            localStorage.removeItem('test_incognito_chk');
-            return false;
+            let cleanEncoded = encoded.trim().replace(/\s/g, '+');
+            let targetUrl = atob(cleanEncoded).replace(/[^\x21-\x7E]/g, '').trim();
+
+            let timeLeft = 3;
+            const countdown = setInterval(() => {
+                timeLeft--;
+                if (timerEl) timerEl.innerText = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    // Chuyển tab hiện tại sang link Game
+                    window.location.href = targetUrl;
+                }
+            }, 1000);
+
         } catch (e) {
-            return true;
+            if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ LINK</h3>";
         }
-    }
-
-    // 2. Kiểm tra Bypass 7 ngày
-    function check7DaysBypass() {
-        try {
-            const savedTime = localStorage.getItem('shopee_click_time');
-            if (!savedTime) return false;
-
-            const now = Date.now();
-            const clickTime = parseInt(savedTime, 10);
-            const sevenDays = 7 * 24 * 60 * 60 * 1000;
-
-            if (!isNaN(clickTime) && (now - clickTime) < sevenDays) {
-                return true; 
-            } else {
-                localStorage.removeItem('shopee_click_time');
-                return false;
-            }
-        } catch(e) {
-            return false;
-        }
-    }
-
-    function init() {
-        const isIncognitoMode = checkIncognito();
-        const alertBox = document.getElementById('incognito-alert');
-        const isBypassed = check7DaysBypass();
-
-        let shouldRedirectToShopee = false;
-
-        if (isIncognitoMode) {
-            if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; // Ẩn danh -> Bắt buộc nhảy
-        } else if (isBypassed) {
-            shouldRedirectToShopee = false; // Đã ủng hộ -> Không nhảy
-        } else {
-            // Đếm 10 lần
-            let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
-            if (count >= 10) {
-                localStorage.setItem('test_download_count', '0');
-                shouldRedirectToShopee = true;
-            } else {
-                localStorage.setItem('test_download_count', count.toString());
-                shouldRedirectToShopee = false;
-            }
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        let encoded = urlParams.get('url');
-        const timerEl = document.getElementById('timer');
-        const boxEl = document.getElementById('main-box');
-
-        if (encoded) {
-            try {
-                let cleanEncoded = encoded.trim().replace(/\s/g, '+');
-                let targetUrl = atob(cleanEncoded).replace(/[^\x21-\x7E]/g, '').trim();
-
-                let timeLeft = 3;
-                const countdown = setInterval(() => {
-                    timeLeft--;
-                    if (timerEl) timerEl.innerText = timeLeft;
-                    
-                    if (timeLeft <= 0) {
-                        clearInterval(countdown);
-                        
-                        if (shouldRedirectToShopee) {
-                            // BỎ WINDOW.OPEN BỊ CHẶN: Dùng cơ chế Replace Location nối tiếp
-                            // Đổi vị trí tab hiện tại sang Shopee
-                            window.location.replace(getRandomShopeeLink());
-                            
-                            // Ngay lập tức mở link game trên tab mới (Lúc này sự kiện replace kích hoạt hợp lệ)
-                            setTimeout(() => {
-                                window.open(targetUrl, '_blank');
-                            }, 100);
-                        } else {
-                            // Không dính Shopee -> Chuyển thẳng tab hiện tại sang link Game
-                            window.location.href = targetUrl;
-                        }
-                    }
-                }, 1000);
-
-            } catch (e) {
-                if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ LINK</h3>";
-            }
-        } else {
-            if (boxEl) boxEl.innerHTML = "<h3>KHÔNG TÌM THẤY THAM SỐ LINK</h3>";
-        }
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", init);
     } else {
-        init();
+        if (boxEl) boxEl.innerHTML = "<h3>KHÔNG TÌM THẤY THAM SỐ LINK</h3>";
     }
 })();
 </script>
