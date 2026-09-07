@@ -490,25 +490,23 @@ const backToTopBtn = document.getElementById('back-to-top');
     if (btn) {
         btn.onclick = async function(e) {
             e.preventDefault();
-            e.stopPropagation(); // Ngăn sự kiện lan ra ngoài (tránh đụng độ với Script 1)
+            e.stopPropagation();
 
             if (errorEl) errorEl.style.display = 'none';
 
             const isIncognito = await isIncognitoMode();
 
             if (isIncognito) {
-                showError("⚠️ Bạn đang bật Ẩn danh. Vui lòng tắt ẩn danh để mở khóa 7 ngày!");
-                return false;
+                // Nếu ở TAB ẨN DANH: Đã click ủng hộ -> Đánh dấu không nhảy quảng cáo 1-click nữa
+                localStorage.setItem('incognito_bypassed', 'true');
+            } else {
+                // Nếu ở TAB THƯỜNG: Lưu thời gian mở khóa 7 ngày & Reset bộ đếm 10 lần về 0
+                const currentTime = Date.now().toString();
+                localStorage.setItem('shopee_click_time', currentTime);
+                localStorage.setItem('download_click_count', '0');
             }
 
-            // GHI DỮ LIỆU BYPASS (Lưu Timestamp chính xác)
-            const currentTime = Date.now().toString();
-            localStorage.setItem('shopee_click_time', currentTime);
-            localStorage.setItem('test_download_count', '0');
-
-            console.log("Đã lưu shopee_click_time:", currentTime);
-
-            // Mở link Shopee
+            // Mở link Shopee ủng hộ
             const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
             window.open(randomLink, '_blank');
         };
