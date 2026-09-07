@@ -838,20 +838,11 @@ document.addEventListener('click', function(e) {
     // Kiểm tra thiết bị Điện thoại
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Kiểm tra Tab Ẩn Danh
-    function checkIncognito() {
-        try {
-            if (!window.indexedDB) return true;
-            return false;
-        } catch (err) {
-            return true;
-        }
-    }
-    const isIncognito = checkIncognito();
-
     // 1. KIỂM TRA TRẠNG THÁI MỞ KHÓA (BYPASS)
+    // Chỉ chấp nhận bypass nếu kiểm tra được dữ liệu lưu bền vững (Đặc trưng của Tab thường)
     const savedTime = localStorage.getItem('shopee_click_time');
     let isBypassed = false;
+
     if (savedTime) {
         const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
         if (diffDays < 7) {
@@ -860,6 +851,8 @@ document.addEventListener('click', function(e) {
             localStorage.removeItem('shopee_click_time');
         }
     }
+    
+    // Cookie kiểm tra song song cho Tab thường
     const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
 
     // Đã từng nhảy sang App Shopee trên điện thoại chưa
@@ -867,20 +860,22 @@ document.addEventListener('click', function(e) {
 
     // === XỬ LÝ LOGIC MIỄN QUẢNG CÁO ===
     if (isMobile) {
-        // TRÊN ĐIỆN THOẠI: Đã nhảy sang App Shopee thành công hoặc đã ấn Ủng hộ -> MIỄN QUẢNG CÁO
+        // TRÊN ĐIỆN THOẠI: Mở app thành công hoặc bấm ủng hộ -> MIỄN QUẢNG CÁO
         if (isAppOpened || isBypassed || isCookieBypassed) {
             return;
         }
     } else {
         // TRÊN MÁY TÍNH (WEB):
-        // - Tab ẩn danh: KỂ CẢ BẤM ỦNG HỘ VẪN BỊ QUẢNG CÁO (không thoát)
-        // - Tab thường: Bấm ủng hộ thì mới được miễn
-        if (!isIncognito && (isBypassed || isCookieBypassed)) {
-            return;
+        // Kiểm tra xem có dấu xác thực "Tab Thường Bền Vững" hay không
+        // Nếu không có dấu này (tức là tab ẩn danh hoặc chưa xác thực) -> Bỏ qua Bypass, bắt buộc nhảy quảng cáo
+        const isNormalSession = localStorage.getItem('is_normal_browser') === 'true';
+
+        if (isNormalSession && (isBypassed || isCookieBypassed)) {
+            return; // Chỉ Tab thường mới được thoát quảng cáo
         }
     }
 
-    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5
+    // 2. XỬ LÝ ĐẾM CLICK RANDOM TỪ 3 ĐẾN 5 (GIỮ NGUYÊN)
     let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
     if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
         targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3; // Random 3, 4 hoặc 5
@@ -895,7 +890,6 @@ document.addEventListener('click', function(e) {
         localStorage.setItem('download_click_count', '0');
         localStorage.removeItem('shopee_target_clicks');
 
-        // Nếu là điện thoại thì lưu dấu đã mở App thành công để các lần sau không bị quảng cáo nữa
         if (isMobile) {
             localStorage.setItem('shopee_app_opened', 'true');
         }
@@ -907,7 +901,7 @@ document.addEventListener('click', function(e) {
         cleanUrl.searchParams.delete('shopee_cnt');
         window.location.href = cleanUrl.toString();
     } else {
-        // CHƯA ĐỦ CLICK -> LƯU VÀO URL ĐỂ DÙNG CHO CẢ TAB ẨN DANH
+        // CHƯA ĐỦ CLICK -> LƯU VÀO URL
         localStorage.setItem('download_click_count', currentClick.toString());
 
         const nextUrl = new URL(link.href);
