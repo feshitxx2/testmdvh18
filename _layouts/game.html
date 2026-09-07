@@ -829,9 +829,6 @@ document.addEventListener('click', function(e) {
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
-    // Nếu phát hiện là Tab Ẩn Danh thì bỏ qua hoàn toàn, để Script 2 xử lý
-    if (!window.indexedDB || window.webkitRequestFileSystem) return;
-
     function getCookie(name) {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
@@ -839,58 +836,64 @@ document.addEventListener('click', function(e) {
         return null;
     }
 
-    // Kiếm tra xem có được mở khóa từ nút "Ủng hộ" không
-    const savedTime = localStorage.getItem('shopee_click_time');
-    let isBypassed = false;
-    if (savedTime) {
-        const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
-        if (diffDays < 7) {
-            isBypassed = true;
-        } else {
-            localStorage.removeItem('shopee_click_time');
+    // Kiểm tra xem có phải tab ẩn danh không
+    function checkIsIncognito() {
+        try {
+            // Kiểm tra Safari / Firefox private mode hoặc quota Storage bị nén nhỏ trên Chrome
+            if (!window.indexedDB) return true;
+            return false;
+        } catch (err) {
+            return true;
         }
     }
 
-    const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
+    const isIncognito = checkIsIncognito();
 
-    // TAB THƯỜNG: Nếu đã bấm nút "Ủng hộ" thì BỎ QUA QUẢNG CÁO
-    if (isBypassed || isCookieBypassed) return;
+    if (isIncognito) {
+        // ================= TAB ẨN DANH: 2 CLICK / 1 QUẢNG CÁO =================
+        // Bỏ qua hoàn toàn trạng thái ủng hộ (shopee_unlocked)
+        let incognitoCount = parseInt(localStorage.getItem('incognito_download_click_count') || '0', 10) + 1;
 
-    // TAB THƯỜNG: 2 CLICK / 1 QUẢNG CÁO
-    let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
-    if (count >= 2) {
-        localStorage.setItem('download_click_count', '0');
-        e.preventDefault();
-        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-        window.location.href = link.href;
+        if (incognitoCount >= 2) {
+            localStorage.setItem('incognito_download_click_count', '0');
+            e.preventDefault();
+            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+            window.location.href = link.href;
+        } else {
+            localStorage.setItem('incognito_download_click_count', incognitoCount.toString());
+        }
+
     } else {
-        localStorage.setItem('download_click_count', count.toString());
-    }
-});
-</script>
+        // ================= TAB THƯỜNG: 10 CLICK / 1 QUẢNG CÁO =================
+        // 1. Kiểm tra xem người dùng đã bấm nút "Ủng hộ" chưa
+        const savedTime = localStorage.getItem('shopee_click_time');
+        let isBypassed = false;
 
-<!-- ================= SCRIPT 2: XỬ LÝ TAB ẨN DANH ================= -->
-<script>
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('a');
-    if (!link || !link.href || !link.href.includes('download.html?url=')) return;
+        if (savedTime) {
+            const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+            if (diffDays < 7) {
+                isBypassed = true;
+            } else {
+                localStorage.removeItem('shopee_click_time');
+            }
+        }
 
-    const btn = document.getElementById('shopee-homepage-btn');
-    if (btn && btn.contains(link)) return;
+        const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
 
-    // Chỉ chạy khi là Tab Ẩn Danh
-    const isIncognito = !window.indexedDB || window.webkitRequestFileSystem;
-    if (!isIncognito) return;
+        // Nếu ĐÃ ẤN ỦNG HỘ -> Miễn toàn bộ quảng cáo trên tab thường
+        if (isBypassed || isCookieBypassed) return;
 
-    // TAB ẨN DANH: 2 CLICK / 1 QUẢNG CÁO (KHOAN BỎ QUA, BẤM ỦNG HỘ VẪN DÍNH)
-    let incognitoCount = parseInt(localStorage.getItem('incognito_download_click_count') || '0', 10) + 1;
-    if (incognitoCount >= 2) {
-        localStorage.setItem('incognito_download_click_count', '0');
-        e.preventDefault();
-        window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
-        window.location.href = link.href;
-    } else {
-        localStorage.setItem('incognito_download_click_count', incognitoCount.toString());
+        // 2. Nếu CHƯA ỦNG HỘ -> Đếm đủ 10 click thì nhảy quảng cáo 1 lần
+        let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
+
+        if (count >= 10) {
+            localStorage.setItem('download_click_count', '0');
+            e.preventDefault();
+            window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
+            window.location.href = link.href;
+        } else {
+            localStorage.setItem('download_click_count', count.toString());
+        }
     }
 });
 </script>
