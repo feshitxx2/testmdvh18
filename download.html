@@ -24,12 +24,6 @@
     if (window.__redirectScriptLoaded) return;
     window.__redirectScriptLoaded = true;
 
-    const shopeeLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
-
-    function getRandomShopeeLink() {
-        return shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
-    }
-
     const urlParams = new URLSearchParams(window.location.search);
     let encoded = urlParams.get('url');
 
@@ -42,15 +36,7 @@
                 targetUrl = targetUrl.replace('mdvh18.com/mdvh18/', 'mdvh18.com/');
             }
 
-            // 1. Mở link Shopee sang Tab mới
-            const shopeeAnchor = document.createElement('a');
-            shopeeAnchor.href = getRandomShopeeLink();
-            shopeeAnchor.target = '_blank';
-            shopeeAnchor.rel = 'noopener noreferrer';
-            document.body.appendChild(shopeeAnchor);
-            shopeeAnchor.click();
-
-            // 2. Tab hiện tại chuyển thẳng sang link Game PixelDrain
+            // Chuyển thẳng tab hiện tại sang link Game
             window.location.href = targetUrl;
 
         } catch (e) {
