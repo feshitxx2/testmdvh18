@@ -457,60 +457,36 @@ const backToTopBtn = document.getElementById('back-to-top');
 (function() {
     const shopeeHomepageLinks = ["https://s.shopee.vn/1gIPlfm3xz"];
     const btn = document.getElementById('shopee-homepage-btn');
-    const liItem = document.getElementById('shopee-li-item');
     const errorEl = document.getElementById('shopee-error-msg');
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    // Kiểm tra khả năng lưu trữ thực tế
-    async function shouldShowButton() {
-        // Trên điện thoại: Cho hiện
-        if (isMobile) return true;
-
-        // Trên máy tính: Kiểm tra dung lượng Quota của Chrome/Edge
-        if (navigator.storage && navigator.storage.estimate) {
-            const { quota } = await navigator.storage.estimate();
-            // Nếu Quota nhỏ hơn 120MB -> Tab ẩn danh -> KHÔNG HIỆN
-            if (quota < 120000000) return false;
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
         }
-
-        return true;
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
 
-    shouldShowButton().then(function(canShow) {
-        if (!canShow || !liItem) return;
+    if (btn) {
+        btn.onclick = function(e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-        // Nếu hợp lệ (Tab thường) -> Mới cho hiện nút lên
-        liItem.style.display = '';
+            if (errorEl) errorEl.style.display = 'none';
 
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                const date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/";
-        }
-
-        if (btn) {
-            btn.onclick = function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (errorEl) errorEl.style.display = 'none';
-
-                try {
-                    localStorage.setItem('shopee_click_time', Date.now().toString());
-                    localStorage.setItem('download_click_count', '0');
-                } catch(err) {}
-
+            // CHỈ LƯU DẤU MIỄN QUẢNG CÁO NẾU LÀ TAB THƯỜNG (Có persistent marker)
+            // Nếu tab ẩn danh -> Không lưu dấu -> Bấm ủng hộ xong vẫn bị quảng cáo
+            try {
+                localStorage.setItem('shopee_click_time', Date.now().toString());
+                localStorage.setItem('download_click_count', '0');
                 setCookie('shopee_unlocked', 'true', 7);
+            } catch(err) {}
 
-                const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
-                window.open(randomLink, '_blank');
-            };
-        }
-    });
+            const randomLink = shopeeHomepageLinks[Math.floor(Math.random() * shopeeHomepageLinks.length)];
+            window.open(randomLink, '_blank');
+        };
+    }
 })();
 </script>
