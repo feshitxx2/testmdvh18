@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-K15TLSNWWT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-K15TLSNWWT');
+</script>   
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đang Chuyển Hướng... | MDVH18 Test</title>
@@ -10,8 +19,6 @@
     .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #f78f90; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #timer { font-size: 3em; color: #d79bbb; font-weight: bold; margin: 10px 0; }
-    .btn-fast { display: inline-block; background: rgba(255, 255, 255, 0.1); color: white; text-decoration: none; padding: 12px 25px; border-radius: 30px; font-weight: bold; margin-top: 10px; cursor: pointer; border: 1px solid #f78f90; font-family: inherit; font-size: 0.9em; }
-    .btn-fast:hover { background: #fff; color: #f78f90; box-shadow: 0 0 15px #f78f90; }
     .incognito-notice { background: rgba(255, 193, 7, 0.2); border: 1px dashed #ffc107; color: #ffe082; padding: 10px 14px; border-radius: 10px; font-size: 0.9em; margin-bottom: 15px; display: none; font-weight: bold; }
 </style>
 </head>
@@ -20,10 +27,9 @@
 <div class="box" id="main-box">
     <div class="loader"></div>
     <div id="incognito-alert" class="incognito-notice">🕵️ Bạn đang ở chế độ ẩn danh!</div>
-    <h3>HỆ THỐNG ĐANG KIỂM TRA</h3>
-    <p>Vui lòng chờ trong giây lát để lấy liên kết tải game an toàn.</p>
+    <h3>ĐANG KẾT NỐI MÁY CHỦ TẢI GAME</h3>
+    <p>Tự động chuyển hướng sau giây lát...</p>
     <div id="timer">3</div>
-    <button id="fast-link" class="btn-fast">TIẾP TỤC NGAY</button>
 </div>
 
 <script>
@@ -50,7 +56,7 @@
         return false;
     }
 
-    // 2. Kiểm tra Bypass 7 ngày (Trả về true/false ép kiểu cứng)
+    // 2. Kiểm tra Bypass 7 ngày
     function check7DaysBypass() {
         try {
             const savedTime = localStorage.getItem('shopee_click_time');
@@ -61,7 +67,7 @@
             const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
 
             if ((now - clickTime) < sevenDaysInMs) {
-                return true; // Còn hạn 7 ngày -> MIỄN QUẢNG CÁO
+                return true; 
             } else {
                 localStorage.removeItem('shopee_click_time');
                 return false;
@@ -78,18 +84,17 @@
 
         let shouldRedirectToShopee = false;
 
-        // KIỂM TRA ĐIỀU KIỆN THEO THỨ TỰ ƯU TIÊN
+        // XÁC ĐỊNH LOGIC
         if (isIncognito) {
             if (alertBox) alertBox.style.display = 'block';
-            shouldRedirectToShopee = true; // 1. Ẩn danh: Luôn nhảy
+            shouldRedirectToShopee = true; // Ẩn danh -> Bắt buộc nhảy
         } else if (isBypassed === true) {
-            shouldRedirectToShopee = false; // 2. Đã bấm ủng hộ (< 7 ngày): TUYỆT ĐỐI KHÔNG NHẢY
+            shouldRedirectToShopee = false; // Đã bypass -> Tuyệt đối không nhảy
         } else {
-            // 3. Chưa bấm ủng hộ: Tính bộ đếm 10 lần
             let count = parseInt(localStorage.getItem('test_download_count') || '0', 10) + 1;
             if (count >= 10) {
                 localStorage.setItem('test_download_count', '0');
-                shouldRedirectToShopee = true;
+                shouldRedirectToShopee = true; // Đủ 10 lần -> Nhảy
             } else {
                 localStorage.setItem('test_download_count', count.toString());
                 shouldRedirectToShopee = false;
@@ -99,7 +104,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         let encoded = urlParams.get('url');
         const timerEl = document.getElementById('timer');
-        const fastBtn = document.getElementById('fast-link');
         const boxEl = document.getElementById('main-box');
         
         let targetUrl = "";
@@ -109,25 +113,7 @@
                 let cleanEncoded = encoded.trim().replace(/\s/g, '+');
                 targetUrl = atob(cleanEncoded).replace(/[^\x21-\x7E]/g, '').trim();
 
-                const doRedirect = () => {
-                    if (shouldRedirectToShopee) {
-                        const shopeeAnchor = document.createElement('a');
-                        shopeeAnchor.href = getRandomShopeeLink();
-                        shopeeAnchor.target = '_blank';
-                        shopeeAnchor.rel = 'noopener noreferrer';
-                        document.body.appendChild(shopeeAnchor);
-                        shopeeAnchor.click();
-                    }
-                    window.location.href = targetUrl;
-                };
-
-                if (fastBtn) {
-                    fastBtn.onclick = function(e) {
-                        e.preventDefault();
-                        doRedirect();
-                    };
-                }
-
+                // Đếm ngược 3 giây tự động nhảy
                 let timeLeft = 3;
                 const countdown = setInterval(() => {
                     timeLeft--;
@@ -135,15 +121,23 @@
                     
                     if (timeLeft <= 0) {
                         clearInterval(countdown);
-                        doRedirect();
+                        
+                        if (shouldRedirectToShopee) {
+                            // Mở Game ở tab mới + Tab hiện tại chuyển sang Shopee (Xử lý triệt để Pop-up Blocker)
+                            window.open(targetUrl, '_blank');
+                            window.location.href = getRandomShopeeLink();
+                        } else {
+                            // Không dính Shopee -> Tab hiện tại chuyển thẳng sang link Game
+                            window.location.href = targetUrl;
+                        }
                     }
                 }, 1000);
 
             } catch (e) {
-                if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ</h3>";
+                if (boxEl) boxEl.innerHTML = "<h3>LỖI GIẢI MÃ LINK</h3>";
             }
         } else {
-            if (boxEl) boxEl.innerHTML = "<h3>LỖI ĐƯỜNG DẪN</h3>";
+            if (boxEl) boxEl.innerHTML = "<h3>KHÔNG TÌM THẤY THAM SỐ LINK (?url=)</h3>";
         }
     }
 
