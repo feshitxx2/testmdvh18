@@ -67,7 +67,7 @@
         return false;
     }
 
-    // 2. Kiểm tra Bypass 7 ngày
+    // 2. Kiểm tra Bypass 7 ngày (cho Tab thường)
     function check7DaysBypass() {
         try {
             const savedTime = localStorage.getItem('shopee_click_time');
@@ -97,32 +97,36 @@
 
         let shouldRedirectToShopee = false;
 
-        // XỬ LÝ LOGIC QUẢNG CÁO
         if (isIncognito) {
+            if (alertBox) alertBox.style.display = 'block';
+
             if (isIncognitoBypassed) {
-                // Ẩn danh + Đã click ủng hộ ở trang chủ -> BỎ QUẢNG CÁO
+                // Ẩn danh + Đã ấn ủng hộ -> Bỏ qua quảng cáo
                 shouldRedirectToShopee = false;
             } else {
-                // Ẩn danh + Chưa ủng hộ -> BẮT BUỘC NHẢY
-                if (alertBox) alertBox.style.display = 'block';
+                // Ẩn danh + Chưa ủng hộ -> 1 CLICK 1 QUẢNG CÁO NGAY LẬP TỨC
                 shouldRedirectToShopee = true;
             }
-        } else if (isBypassed) {
-            // Tab thường + Đã bypass 7 ngày -> TẮT NHẢY
-            shouldRedirectToShopee = false;
         } else {
-            // Tab thường + Chưa ủng hộ -> Đếm đúng 10 lần
-            let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
-            
-            if (count >= 10) {
-                localStorage.setItem('download_click_count', '0');
-                shouldRedirectToShopee = true;
-            } else {
-                localStorage.setItem('download_click_count', count.toString());
+            // Tab Thường
+            if (isBypassed) {
+                // Đã ấn ủng hộ -> Bỏ qua quảng cáo 7 ngày
                 shouldRedirectToShopee = false;
+            } else {
+                // Chưa ủng hộ -> Đếm 10 lần
+                let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
+                
+                if (count >= 10) {
+                    localStorage.setItem('download_click_count', '0');
+                    shouldRedirectToShopee = true;
+                } else {
+                    localStorage.setItem('download_click_count', count.toString());
+                    shouldRedirectToShopee = false;
+                }
             }
         }
 
+        // --- XỬ LÝ CHUYỂN HƯỚNG ---
         const urlParams = new URLSearchParams(window.location.search);
         let encoded = urlParams.get('url');
         const timerEl = document.getElementById('timer');
