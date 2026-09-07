@@ -821,7 +821,7 @@ stars.forEach(star => {
 loadRating();
   </script>
 <script>
-document.addEventListener('click', function(e) {
+document.addEventListener('click', async function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
@@ -830,16 +830,27 @@ document.addEventListener('click', function(e) {
     if (btn && btn.contains(link)) return;
 
     if (link.href.includes('download.html?url=')) {
-        // 1. Kiểm tra ẩn danh
-        let isIncognito = false;
-        try {
-            localStorage.setItem('test_incognito', '1');
-            if (localStorage.getItem('test_incognito') !== '1') isIncognito = true;
-            localStorage.removeItem('test_incognito');
-        } catch (err) {
-            isIncognito = true;
+        // Hàm kiểm tra chế độ ẩn danh chính xác
+        async function checkIsIncognito() {
+            // Kiểm tra qua Storage Quota (Chrome/Edge/Cốc Cốc ẩn danh giới hạn dung lượng khả dụng rất thấp)
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                try {
+                    const { quota } = await navigator.storage.estimate();
+                    if (quota < 40000000) return true;
+                } catch (e) {}
+            }
+            // Fallback kiểm tra filesystem
+            try {
+                localStorage.setItem('test_incognito', '1');
+                if (localStorage.getItem('test_incognito') !== '1') return true;
+                localStorage.removeItem('test_incognito');
+            } catch (err) {
+                return true;
+            }
+            return false;
         }
 
+        const isIncognito = await checkIsIncognito();
         const isIncognitoBypassed = localStorage.getItem('incognito_bypassed') === 'true';
         const savedTime = localStorage.getItem('shopee_click_time');
         
@@ -856,10 +867,10 @@ document.addEventListener('click', function(e) {
         let shouldShopee = false;
 
         if (isIncognito) {
-            // Ẩn danh: chưa ủng hộ -> 1 click nảy ngay 1 Shopee
+            // Tab ẩn danh: Chưa bấm nút ủng hộ -> Nhảy link Shopee ngay ở lần click đầu tiên
             shouldShopee = !isIncognitoBypassed;
         } else {
-            // Tab thường: chưa ủng hộ -> đếm đúng 10 lần
+            // Tab thường: Chưa bấm nút ủng hộ -> Đếm đủ 10 lần click
             if (!isBypassed) {
                 let count = parseInt(localStorage.getItem('download_click_count') || '0', 10) + 1;
                 if (count >= 10) {
@@ -872,7 +883,7 @@ document.addEventListener('click', function(e) {
             }
         }
 
-        // 2. Nếu đủ điều kiện -> Mở Shopee ở tab mới ngay lập tức
+        // Kích hoạt mở tab Shopee nếu đủ điều kiện
         if (shouldShopee) {
             window.open("https://s.shopee.vn/1gIPlfm3xz", "_blank");
         }
