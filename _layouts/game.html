@@ -825,7 +825,6 @@ document.addEventListener('click', function(e) {
     const link = e.target.closest('a');
     if (!link || !link.href) return;
 
-    // Nhận diện mọi link tải: download.html, pixeldrain, gofile hoặc các host lưu trữ khác
     const isDownloadLink = link.href.includes('download.html?url=') || 
                            link.href.includes('pixeldrain.com') || 
                            link.href.includes('gofile.io') ||
@@ -838,7 +837,6 @@ document.addEventListener('click', function(e) {
     const btn = document.getElementById('shopee-homepage-btn');
     if (btn && btn.contains(link)) return;
 
-    // Chặn hành vi mặc định NGAY LẬP TỨC (đồng bộ) để tránh browser tự nhảy link trước khi code async chạy xong
     e.preventDefault();
 
     const shopeeLinks = [
@@ -871,95 +869,67 @@ document.addEventListener('click', function(e) {
         document.cookie = name + "=" + (value || "") + expires + "; path=/";
     }
 
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-    async function checkIncognito() {
-        try {
-            if (navigator.storage && navigator.storage.estimate) {
-                const { quota } = await navigator.storage.estimate();
-                return quota < 120000000;
-            }
-            return false;
-        } catch (err) {
-            return true;
+    // 1. Kiểm tra nếu đã unlock thì đi thẳng link tải
+    const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
+    const savedTime = localStorage.getItem('shopee_click_time');
+    let isBypassed = false;
+    if (savedTime) {
+        const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
+        if (diffDays < 7) {
+            isBypassed = true;
+        } else {
+            localStorage.removeItem('shopee_click_time');
         }
     }
 
-    (async function() {
-        const isIncognito = isMobile ? false : await checkIncognito();
+    if (isCookieBypassed && isBypassed) {
+        window.location.href = link.href;
+        return;
+    }
 
-        const savedTime = localStorage.getItem('shopee_click_time');
-        let isBypassed = false;
-        if (savedTime) {
-            const diffDays = (Date.now() - parseInt(savedTime, 10)) / (1000 * 60 * 60 * 24);
-            if (diffDays < 7) {
-                isBypassed = true;
-            } else {
-                localStorage.removeItem('shopee_click_time');
-            }
-        }
-        const isCookieBypassed = getCookie('shopee_unlocked') === 'true';
-        const isAppOpened = localStorage.getItem('shopee_app_opened') === 'true';
+    // 2. Tính số lượt click mục tiêu (3-5 lần)
+    let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
+    if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
+        targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
+        localStorage.setItem('shopee_target_clicks', targetClicks.toString());
+    }
 
-        let shouldGoDirect = false;
-        if (isMobile) {
-            if (isAppOpened || (isBypassed && isCookieBypassed)) {
-                shouldGoDirect = true;
-            }
+    const urlParams = new URLSearchParams(window.location.search);
+    let currentClick = parseInt(urlParams.get('shopee_cnt') || localStorage.getItem('download_click_count') || '0', 10) + 1;
+
+    if (currentClick >= targetClicks) {
+        // Đủ số lần click:
+        // Mở popup ngay tại đây để không bao giờ bị trình duyệt chặn
+        const randomUrl = shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
+        const popup = window.open(randomUrl, "_blank");
+
+        // Ghi nhận cookie & storage
+        setCookie('shopee_unlocked', 'true', 7);
+        try {
+            localStorage.setItem('shopee_click_time', Date.now().toString());
+            localStorage.setItem('download_click_count', '0');
+            localStorage.removeItem('shopee_target_clicks');
+        } catch(err) {}
+
+        // Kiểm tra xem cookie hoặc popup có mở được không
+        if (getCookie('shopee_unlocked') === 'true' || popup) {
+            alert("Bạn đã làm xong, cảm ơn vì sự đóng góp cho team.");
+            
+            const cleanUrl = new URL(link.href);
+            cleanUrl.searchParams.delete('shopee_cnt');
+            window.location.href = cleanUrl.toString();
         } else {
-            if (!isIncognito && (isBypassed && isCookieBypassed)) {
-                shouldGoDirect = true;
-            }
+            alert("Chưa load link shopee thành công, vui lòng thử lại.");
         }
-
-        if (shouldGoDirect) {
-            window.location.href = link.href;
-            return;
-        }
-
-        let targetClicks = parseInt(localStorage.getItem('shopee_target_clicks') || '0', 10);
-        if (!targetClicks || targetClicks < 3 || targetClicks > 5) {
-            targetClicks = Math.floor(Math.random() * (5 - 3 + 1)) + 3;
-            localStorage.setItem('shopee_target_clicks', targetClicks.toString());
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        let currentClick = parseInt(urlParams.get('shopee_cnt') || localStorage.getItem('download_click_count') || '0', 10) + 1;
-
-        if (currentClick >= targetClicks) {
-            // Mở random 1 trong 10 link Shopee
-            const randomUrl = shopeeLinks[Math.floor(Math.random() * shopeeLinks.length)];
-            window.open(randomUrl, "_blank");
-
-            // Chỉ lưu cookie và tính bypass khi không phải ẩn danh
-            if (!isIncognito) {
-                setCookie('shopee_unlocked', 'true', 7);
-                localStorage.setItem('shopee_click_time', Date.now().toString());
-            }
-
-            // Kiểm tra cookie đã được gán thực tế hay chưa
-            if (getCookie('shopee_unlocked') === 'true') {
-                localStorage.setItem('download_click_count', '0');
-                localStorage.removeItem('shopee_target_clicks');
-                if (isMobile) {
-                    localStorage.setItem('shopee_app_opened', 'true');
-                }
-
-                alert("Bạn đã làm xong, cảm ơn vì sự đóng góp cho team.");
-
-                const cleanUrl = new URL(link.href);
-                cleanUrl.searchParams.delete('shopee_cnt');
-                window.location.href = cleanUrl.toString();
-            } else {
-                alert("Chưa load link shopee thành công, vui lòng thử lại.");
-            }
-        } else {
+    } else {
+        // Chưa đủ số click: tăng số đếm và chuyển URL có param shopee_cnt
+        try {
             localStorage.setItem('download_click_count', currentClick.toString());
-            const nextUrl = new URL(link.href);
-            nextUrl.searchParams.set('shopee_cnt', currentClick.toString());
-            window.location.href = nextUrl.toString();
-        }
-    })();
+        } catch(err) {}
+        const nextUrl = new URL(link.href);
+        nextUrl.searchParams.set('shopee_cnt', currentClick.toString());
+        window.location.href = nextUrl.toString();
+    }
 });
 </script>
 </html>
